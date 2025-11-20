@@ -1,14 +1,12 @@
-FROM eclipse-temurin:21-jdk-ubi9-minimal AS build
-WORKDIR /app
+# 빌드 단계
+FROM gradle:8.5-jdk21 AS builder
+WORKDIR /build
 COPY . .
-RUN microdnf install -y wget unzip findutils && \
-    wget https://services.gradle.org/distributions/gradle-8.5-bin.zip && \
-    unzip gradle-8.5-bin.zip && \
-    rm gradle-8.5-bin.zip
-ENV PATH="/app/gradle-8.5/bin:${PATH}"
-RUN gradle :service:healthcare:bootJar --no-daemon
+RUN gradle :service:healthcare-service:build -x test
 
-FROM eclipse-temurin:21-jdk-ubi9-minimal
-VOLUME /tmp
-COPY --from=build /app/service/healthcare/build/libs/*.jar healthcare-service.jar
-ENTRYPOINT ["java", "-jar", "/healthcare-service.jar"]
+# 실행 단계 (slim 버전 사용)
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /build/service/healthcare-service/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+

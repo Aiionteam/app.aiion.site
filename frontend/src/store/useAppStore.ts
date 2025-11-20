@@ -59,6 +59,27 @@ export const useAppStore = create<AppStore>()((...a) => ({
   // 서비스 슬라이스
   soccer: createSoccerSlice(...a),
   
+  // 전체 스토어 초기화
+  resetStore: () => {
+    const state = useAppStore.getState();
+    // 각 슬라이스의 reset 메서드 호출
+    state.ui.setSidebarOpen(true);
+    state.ui.setDarkMode(false);
+    state.ui.setIsDragging(false);
+    state.interaction.setInputText('');
+    state.interaction.setLoading(false);
+    state.interaction.clearInteractions();
+    state.interaction.setCurrentCategory('home');
+    state.avatar.resetAvatar();
+    state.diary.resetDiaryView();
+    state.calendar.resetCalendar();
+    state.account.resetAccountView();
+    state.culture.resetCultureView();
+    state.health.resetHealthView();
+    state.path.resetPathfinderView();
+    state.soccer.clearResults();
+  },
+  
   // TODO: AI 에이전트 슬라이스들 (5개)
   // agent1: createAgent1Slice(...a),
   // agent2: createAgent2Slice(...a),

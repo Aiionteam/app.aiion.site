@@ -1,4 +1,4 @@
-package site.aiion.api.calendar;
+package site.aiion.api.healthcare;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,12 +7,12 @@ import org.springframework.context.annotation.ComponentScan;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-@ComponentScan(basePackages = "site.aiion.api.calendar")
-public class CalendarServiceApplication 
+@ComponentScan(basePackages = "site.aiion.api.healthcare")
+public class HealthcareServiceApplication 
 {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CalendarServiceApplication.class, args);
+		SpringApplication.run(HealthcareServiceApplication.class, args);
 	}
 
 }

@@ -146,6 +146,42 @@ services:
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
 
+  culture-service:
+    build:
+      context: .
+      dockerfile: ./service/culture-service/Dockerfile
+    container_name: culture-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      - spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_USERNAME=aiion
+      - SPRING_DATASOURCE_PASSWORD=aiion4man
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+
+  healthcare-service:
+    build:
+      context: .
+      dockerfile: ./service/healthcare-service/Dockerfile
+    container_name: healthcare-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - postgres
+      - eureka
+    networks:
+      - spring-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_USERNAME=aiion
+      - SPRING_DATASOURCE_PASSWORD=aiion4man
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+
   nextjs:
     build:
       context: ./frontend
