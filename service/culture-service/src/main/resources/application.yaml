@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: cultureService
+  cloud:
+    compatibility-verifier:
+      enabled: false
+
+server:
+  port: 8080
+
+eureka:
+  instance:
+    hostname: culture-service
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    registry-fetch-interval-seconds: 5
+
