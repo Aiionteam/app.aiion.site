@@ -14,8 +14,47 @@ export interface AppConfig {
   // TODO: 공통 설정 추가
 }
 
+// 슬라이스 타입 import
+import { UiSlice } from "./slices/uiSlice";
+import { SoccerSlice } from "./slices/soccerSlice";
+import { DiarySlice } from "./slices/diarySlice";
+import { CalendarSlice } from "./slices/calendarSlice";
+import { AccountSlice } from "./slices/accountSlice";
+import { CultureSlice } from "./slices/cultureSlice";
+import { HealthSlice } from "./slices/healthSlice";
+import { PathSlice } from "./slices/pathSlice";
+import { InteractionSlice } from "./slices/interactionSlice";
+import { AvatarSlice } from "./slices/avatarSlice";
+
 // 전체 스토어 타입 (모든 슬라이스 통합)
 export interface AppStore extends AppConfig {
+  // 공통 UI 상태 슬라이스
+  ui: UiSlice;
+  
+  // 인터랙션 & 프롬프트 슬라이스
+  interaction: InteractionSlice;
+  
+  // 아바타 모드 슬라이스
+  avatar: AvatarSlice;
+  
+  // 카테고리별 슬라이스
+  diary: DiarySlice;
+  calendar: CalendarSlice;
+  account: AccountSlice;
+  culture: CultureSlice;
+  health: HealthSlice;
+  path: PathSlice;
+  
+  // 서비스 슬라이스
+  soccer: SoccerSlice;
+  
+  // === Common Actions ===
+  /**
+   * 전체 스토어 초기화
+   * 모든 상태를 기본값으로 리셋합니다.
+   */
+  resetStore: () => void;
+  
   // TODO: AI 에이전트 슬라이스들 (5개)
   // agent1: Agent1Slice;
   // agent2: Agent2Slice;
@@ -23,15 +62,11 @@ export interface AppStore extends AppConfig {
   // agent4: Agent4Slice;
   // agent5: Agent5Slice;
   
-  // TODO: 마이크로서비스 슬라이스들 (7개)
+  // TODO: 마이크로서비스 슬라이스들 (나머지 6개)
   // service1: Service1Slice;
   // service2: Service2Slice;
   // service3: Service3Slice;
   // service4: Service4Slice;
   // service5: Service5Slice;
   // service6: Service6Slice;
-  // service7: Service7Slice;
-  
-  // TODO: UI 상태 슬라이스 (필요시)
-  // ui: UiSlice;
 }
