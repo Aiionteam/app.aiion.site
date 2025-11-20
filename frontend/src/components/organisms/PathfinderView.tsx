@@ -81,15 +81,23 @@ export const PathfinderView: React.FC<PathfinderViewProps> = ({
   // Learning 뷰
   if (pathfinderView === 'learning') {
     return (
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f1e8]">
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setPathfinderView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">학습</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">학습</h1>
-              <Button onClick={() => setPathfinderView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <p className="text-center text-gray-500 py-8">학습 목록이 없습니다.</p>
             </div>
@@ -102,15 +110,23 @@ export const PathfinderView: React.FC<PathfinderViewProps> = ({
   // New-learning 뷰
   if (pathfinderView === 'new-learning') {
     return (
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f1e8]">
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setPathfinderView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">새 학습 시작</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">새 학습 시작</h1>
-              <Button onClick={() => setPathfinderView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <div className="space-y-4">
                 <div>
@@ -145,15 +161,23 @@ export const PathfinderView: React.FC<PathfinderViewProps> = ({
   // Career 뷰
   if (pathfinderView === 'career') {
     return (
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f1e8]">
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setPathfinderView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">커리어</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">커리어</h1>
-              <Button onClick={() => setPathfinderView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <p className="text-center text-gray-500 py-8">커리어 정보가 없습니다.</p>
             </div>
@@ -166,15 +190,23 @@ export const PathfinderView: React.FC<PathfinderViewProps> = ({
   // Roadmap 뷰
   if (pathfinderView === 'roadmap') {
     return (
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f1e8]">
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setPathfinderView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">로드맵</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">로드맵</h1>
-              <Button onClick={() => setPathfinderView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <p className="text-center text-gray-500 py-8">로드맵이 없습니다.</p>
             </div>

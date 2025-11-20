@@ -15,13 +15,13 @@ export const AGENT_ENDPOINTS = {
 
 // TODO: 마이크로서비스 엔드포인트 (7개)
 export const SERVICE_ENDPOINTS = {
-  // service1: '/api/service1',
-  // service2: '/api/service2',
-  // service3: '/api/service3',
+  SOCCER: '/soccer/findByWord',
+  CALENDAR: '/api/calendar',
+  DIARY: '/api/diary',
+  COMMON: '/api/common',
   // service4: '/api/service4',
   // service5: '/api/service5',
   // service6: '/api/service6',
-  // service7: '/api/service7',
 } as const;
 
 // Gateway 설정

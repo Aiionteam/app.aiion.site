@@ -98,16 +98,6 @@ export const MainLayout: React.FC<MainLayoutProps> = memo(({
         ) : (
           <>
             {children}
-            <PromptInput
-              inputText={inputText}
-              setInputText={setInputText}
-              loading={loading}
-              avatarMode={avatarMode}
-              micAvailable={micAvailable}
-              onMicClick={handleMicClick}
-              onSubmit={handleSubmit}
-              darkMode={darkMode}
-            />
           </>
         )}
       </div>

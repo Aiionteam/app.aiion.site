@@ -17,12 +17,14 @@ export interface Event {
   text: string;
   time?: string;
   isAllDay: boolean;
-  notification: boolean;
+  notification?: boolean;
+  alarmOn?: boolean;
 }
 
 export interface Task {
   id: string;
   text: string;
+  completed?: boolean;
 }
 
 export interface Diary {

@@ -84,14 +84,22 @@ export const HealthView: React.FC<HealthViewProps> = ({
   if (healthView === 'exercise') {
     return (
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setHealthView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">운동</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">운동</h1>
-              <Button onClick={() => setHealthView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <div className="mb-4">
                 <div className="flex gap-2 flex-wrap">
@@ -119,14 +127,22 @@ export const HealthView: React.FC<HealthViewProps> = ({
   if (healthView === 'health') {
     return (
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setHealthView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">건강 관리</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">건강 관리</h1>
-              <Button onClick={() => setHealthView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -152,14 +168,22 @@ export const HealthView: React.FC<HealthViewProps> = ({
   if (healthView === 'records') {
     return (
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setHealthView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">건강 기록</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">건강 기록</h1>
-              <Button onClick={() => setHealthView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <p className="text-center text-gray-500 py-8">기록이 없습니다.</p>
             </div>
@@ -173,14 +197,22 @@ export const HealthView: React.FC<HealthViewProps> = ({
   if (healthView === 'scan') {
     return (
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setHealthView('home')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">스캔</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">스캔</h1>
-              <Button onClick={() => setHealthView('home')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">건강 검진 결과를 스캔하여 저장할 수 있습니다.</p>
@@ -197,14 +229,22 @@ export const HealthView: React.FC<HealthViewProps> = ({
   if (healthView === 'exercise-detail') {
     return (
       <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
+        <div className="bg-white border-b border-[#d4c4a8] shadow-sm p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <button
+              onClick={() => setHealthView('exercise')}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-medium">돌아가기</span>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">운동 상세</h1>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">운동 상세</h1>
-              <Button onClick={() => setHealthView('exercise')} variant="ghost">
-                ← 돌아가기
-              </Button>
-            </div>
             <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
               <p className="text-center text-gray-500 py-8">운동 상세 정보가 없습니다.</p>
             </div>

@@ -170,7 +170,7 @@ export const useHomePage = () => {
     }
   }, [avatarMode]);
 
-  const handleSubmit = useCallback((text?: string) => {
+  const handleSubmit = useCallback(async (text?: string) => {
     const submitText = text || inputText;
     if (!submitText.trim() && !text) {
       return;
@@ -179,32 +179,204 @@ export const useHomePage = () => {
     setLoading(true);
     setInputText('');
 
-    setTimeout(() => {
-      const today = new Date();
-      const dateStr = getLocalDateStr(today);
-      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-      const dayOfWeek = dayNames[today.getDay()];
+    const today = new Date();
+    const dateStr = getLocalDateStr(today);
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayOfWeek = dayNames[today.getDay()];
 
-      const categories = extractCategories(submitText);
+    const categories = extractCategories(submitText);
 
-      const newInteraction: Interaction = {
-        id: Date.now().toString(),
-        date: dateStr,
-        dayOfWeek: dayOfWeek,
-        userInput: submitText,
-        categories: categories.length > 0 ? categories : ['일기'],
-        aiResponse: categories.length > 0
-          ? '호현님의 입력을 각 카테고리에 맞게 파싱 및 저장했습니다.'
-          : '입력을 저장했습니다.',
-      };
+    // 축구 관련 키워드 감지 (더 많은 키워드 추가)
+    const soccerKeywords = [
+      '축구', '선수', '팀', '경기', '일정', '경기장', '스타디움', '스타디엄',
+      '손흥민', '이강인', '황희찬', '김민재', '조규성', '황의조', '김민성', '김규호',
+      'K리그', 'K리그1', 'K리그2', '프리미어리그', '프리미어', 'EPL', 'k리그',
+      '챔피언스리그', 'UEFA', '월드컵', '아시안컵',
+      '토트넘', '맨유', '맨체스터', '리버풀', '첼시', '아스널', '맨시티',
+      '레알마드리드', '바르셀로나', '바이에른', '도르트문트',
+      '서울', '수원', '전북', '포항', '울산', '인천', '부산', '대구', '광주',
+      '축구선수', '축구팀', '축구경기', '축구일정'
+    ];
+    
+    const submitTextLower = submitText.toLowerCase();
+    const hasSoccerKeyword = soccerKeywords.some(keyword => 
+      submitTextLower.includes(keyword.toLowerCase())
+    );
+    
+    console.log('[useHomePage] 🔍 키워드 감지 체크:', {
+      입력텍스트: submitText,
+      소문자변환: submitTextLower,
+      감지됨: hasSoccerKeyword
+    });
 
-      setInteractions(prev => [...prev, newInteraction]);
-      setLoading(false);
+    let aiResponse = categories.length > 0
+      ? '호현님의 입력을 각 카테고리에 맞게 파싱 및 저장했습니다.'
+      : '입력을 저장했습니다.';
 
-      if (avatarMode) {
-        speakResponse(newInteraction.aiResponse);
+    // 축구 관련 검색어가 있으면 soccer-service API 호출
+    if (hasSoccerKeyword) {
+      try {
+        console.log('[useHomePage] ⚽ 축구 관련 검색어 감지:', submitText);
+        
+        // Gateway를 통한 API 호출
+        const gatewayUrl = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 
+                          process.env.NEXT_PUBLIC_API_BASE_URL || 
+                          'http://localhost:8080';
+        
+        // 검색어 추출 (축구 관련 키워드만 추출)
+        let searchKeyword = submitText;
+        // 검색어에서 축구 관련 키워드 추출
+        const foundKeyword = soccerKeywords.find(keyword => 
+          submitText.toLowerCase().includes(keyword.toLowerCase())
+        );
+        if (foundKeyword) {
+          // 키워드 주변 텍스트 추출 (예: "손흥민 정보" -> "손흥민")
+          const keywordIndex = submitText.toLowerCase().indexOf(foundKeyword.toLowerCase());
+          if (keywordIndex >= 0) {
+            // 키워드 앞뒤로 최대 10자 추출
+            const start = Math.max(0, keywordIndex - 10);
+            const end = Math.min(submitText.length, keywordIndex + foundKeyword.length + 10);
+            searchKeyword = submitText.substring(start, end).trim();
+          }
+        }
+        
+        // Gateway discovery locator를 통한 경로 사용
+        // /soccer-service/soccer/findByWord 또는 /soccer/findByWord
+        const apiUrl = `${gatewayUrl}/soccer-service/soccer/findByWord?keyword=${encodeURIComponent(searchKeyword)}`;
+        console.log('[useHomePage] 🔗 API 호출 URL:', apiUrl);
+        console.log('[useHomePage] 🔍 검색 키워드:', searchKeyword);
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+        });
+
+        console.log('[useHomePage] 📡 API 응답 상태:', response.status, response.statusText);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[useHomePage] ✅ API 응답 데이터:', result);
+
+          // Code 또는 code 모두 체크 (대소문자 구분 없이)
+          const responseCode = result.Code || result.code || 200;
+          console.log('[useHomePage] 📊 응답 코드:', responseCode);
+
+          if (responseCode === 200 && result.data) {
+            const data = result.data;
+            const totalCount = data.totalCount || 0;
+            const results = data.results || {};
+
+            // AI 응답 생성
+            let detailedResponse = `🔍 축구 검색 결과 (총 ${totalCount}개)\n\n`;
+
+            if (results.players && results.players.length > 0) {
+              detailedResponse += `⚽ 선수 정보 (${results.players.length}개):\n`;
+              results.players.slice(0, 3).forEach((player: any, index: number) => {
+                detailedResponse += `${index + 1}. ${player.player_name || '알 수 없음'}`;
+                if (player.team_name) detailedResponse += ` (${player.team_name})`;
+                if (player.position) detailedResponse += ` - ${player.position}`;
+                detailedResponse += '\n';
+              });
+              if (results.players.length > 3) {
+                detailedResponse += `   ... 외 ${results.players.length - 3}명\n`;
+              }
+              detailedResponse += '\n';
+            }
+
+            if (results.teams && results.teams.length > 0) {
+              detailedResponse += `🏆 팀 정보 (${results.teams.length}개):\n`;
+              results.teams.slice(0, 3).forEach((team: any, index: number) => {
+                detailedResponse += `${index + 1}. ${team.team_name || '알 수 없음'}`;
+                if (team.city) detailedResponse += ` (${team.city})`;
+                detailedResponse += '\n';
+              });
+              if (results.teams.length > 3) {
+                detailedResponse += `   ... 외 ${results.teams.length - 3}개 팀\n`;
+              }
+              detailedResponse += '\n';
+            }
+
+            if (results.stadiums && results.stadiums.length > 0) {
+              detailedResponse += `🏟️ 경기장 정보 (${results.stadiums.length}개):\n`;
+              results.stadiums.slice(0, 3).forEach((stadium: any, index: number) => {
+                detailedResponse += `${index + 1}. ${stadium.stadium_name || '알 수 없음'}`;
+                if (stadium.city) detailedResponse += ` (${stadium.city})`;
+                detailedResponse += '\n';
+              });
+              if (results.stadiums.length > 3) {
+                detailedResponse += `   ... 외 ${results.stadiums.length - 3}개 경기장\n`;
+              }
+              detailedResponse += '\n';
+            }
+
+            if (results.schedules && results.schedules.length > 0) {
+              detailedResponse += `📅 일정 정보 (${results.schedules.length}개):\n`;
+              results.schedules.slice(0, 3).forEach((schedule: any, index: number) => {
+                detailedResponse += `${index + 1}. ${schedule.home_team || '알 수 없음'} vs ${schedule.away_team || '알 수 없음'}`;
+                if (schedule.match_date) detailedResponse += ` (${schedule.match_date})`;
+                detailedResponse += '\n';
+              });
+              if (results.schedules.length > 3) {
+                detailedResponse += `   ... 외 ${results.schedules.length - 3}개 일정\n`;
+              }
+            }
+
+            if (totalCount === 0) {
+              detailedResponse = result.message || '검색 결과가 없습니다.';
+            }
+
+            aiResponse = detailedResponse;
+          } else {
+            console.warn('[useHomePage] ⚠️ API 응답 코드가 200이 아니거나 데이터가 없음:', result);
+            const responseCode = result.Code || result.code || '알 수 없음';
+            aiResponse = result.message || `축구 정보를 가져오는데 실패했습니다. (코드: ${responseCode})`;
+            
+            // 데이터가 없어도 메시지는 표시
+            if (result.message) {
+              aiResponse = result.message;
+            }
+          }
+        } else {
+          const errorText = await response.text();
+          console.error('[useHomePage] ❌ API 호출 실패:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText
+          });
+          aiResponse = `축구 정보를 가져오는데 실패했습니다. (상태: ${response.status})`;
+        }
+      } catch (error) {
+        console.error('[useHomePage] ❌ API 호출 중 오류:', error);
+        if (error instanceof Error) {
+          console.error('[useHomePage] 오류 상세:', error.message, error.stack);
+        }
+        aiResponse = `축구 정보를 조회하는 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`;
       }
-    }, 1000);
+    } else {
+      console.log('[useHomePage] ℹ️ 축구 관련 키워드가 감지되지 않음:', submitText);
+      console.log('[useHomePage] 🔍 입력 텍스트:', submitText);
+      console.log('[useHomePage] 🔍 키워드 목록:', soccerKeywords);
+    }
+
+    const newInteraction: Interaction = {
+      id: Date.now().toString(),
+      date: dateStr,
+      dayOfWeek: dayOfWeek,
+      userInput: submitText,
+      categories: categories.length > 0 ? categories : ['일기'],
+      aiResponse: aiResponse,
+    };
+
+    setInteractions(prev => [...prev, newInteraction]);
+    setLoading(false);
+
+    if (avatarMode) {
+      speakResponse(newInteraction.aiResponse);
+    }
   }, [inputText, avatarMode, interactions]);
 
   // 카테고리 변경 시 뷰 리셋
