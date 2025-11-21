@@ -1,11 +1,11 @@
-FROM eclipse-temurin:21-jdk-ubi9-minimal
+# 빌드 단계
+FROM gradle:8.5-jdk21 AS builder
+WORKDIR /build
+COPY . .
+RUN gradle :service:account-service:build -x test
 
-VOLUME /tmp
-
-RUN microdnf update -y \
-    && microdnf install -y curl-minimal \
-    && microdnf clean all
-
-COPY ./service/accountService/build/libs/*.jar app.jar
-
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# 실행 단계 (slim 버전 사용)
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /build/service/account-service/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

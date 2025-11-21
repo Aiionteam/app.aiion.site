@@ -6,7 +6,7 @@ services:
     image: postgres:15-alpine
     container_name: postgres
     environment:
-      POSTGRES_DB: aidb
+      POSTGRES_DB: aiion
       POSTGRES_USER: aiion
       POSTGRES_PASSWORD: aiion4man
     ports:
@@ -52,10 +52,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8761/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 40s
 
   config:
     build:
@@ -99,10 +100,11 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_LOADBALANCER=DEBUG
       - LOGGING_LEVEL_REACTOR_NETTY=INFO
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 40s
 
   # ===================
   # AI Middleware Layer (준비 - 나중에 활성화)
@@ -149,7 +151,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -174,7 +176,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -199,7 +201,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -224,7 +226,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -249,7 +251,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -274,7 +276,7 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
@@ -299,7 +301,32 @@ services:
       - spring-network
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aidb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
+      - SPRING_DATASOURCE_USERNAME=aiion
+      - SPRING_DATASOURCE_PASSWORD=aiion4man
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+
+  account-service:
+    build:
+      context: .
+      dockerfile: ./service/account-service/Dockerfile
+    container_name: account-service
+    ports:
+      - "8088:8088"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+    networks:
+      - spring-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/aiion
       - SPRING_DATASOURCE_USERNAME=aiion
       - SPRING_DATASOURCE_PASSWORD=aiion4man
       - SPRING_REDIS_HOST=redis
