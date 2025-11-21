@@ -53,7 +53,7 @@ export const MainLayout: React.FC<MainLayoutProps> = memo(({
   children,
 }) => {
   return (
-    <div className="flex h-screen bg-[#e8e2d5] overflow-hidden">
+    <div className={`flex h-screen overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -66,7 +66,7 @@ export const MainLayout: React.FC<MainLayoutProps> = memo(({
         setIsDragging={setIsDragging}
       />
 
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : ''}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
         {avatarMode ? (
           <>
             <AvatarMode isListening={isListening} />

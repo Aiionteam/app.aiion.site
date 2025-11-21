@@ -58,17 +58,21 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
       ref={sidebarRef}
       className={`${
         sidebarOpen ? 'w-64' : 'w-16'
-      } bg-[#f5f1e8] border-r border-[#d4cdc0] transition-all duration-300 flex flex-col relative`}
+      } ${
+        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-[#f5f1e8] border-[#d4cdc0]'
+      } border-r transition-all duration-300 flex flex-col relative`}
     >
       {/* Sidebar Handle */}
       <div
         onMouseDown={handleSidebarDrag}
-        className={`absolute ${sidebarOpen ? 'left-full' : 'left-0'} top-0 bottom-0 w-1 bg-[#d4cdc0] hover:bg-[#8B7355] cursor-col-resize z-10 transition-colors`}
+        className={`absolute ${sidebarOpen ? 'left-full' : 'left-0'} top-0 bottom-0 w-1 ${
+          darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-[#d4cdc0] hover:bg-[#8B7355]'
+        } cursor-col-resize z-10 transition-colors`}
         title="사이드바 손잡이"
       />
 
       {/* Menu Header */}
-      <div className="p-4 border-b border-[#d4cdc0]">
+      <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-[#d4cdc0]'}`}>
         <div className="flex items-center justify-center">
           <div className="w-20 h-20 flex items-center justify-center flex-shrink-0">
             <img
@@ -87,7 +91,9 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
       <nav className="flex-1 p-2">
         <div className="mb-2">
           {sidebarOpen && (
-            <p className="text-xs text-gray-500 uppercase px-3 py-2 font-semibold">menu</p>
+            <p className={`text-xs uppercase px-3 py-2 font-semibold ${
+              darkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>menu</p>
           )}
         </div>
         {menuItems.map((item) => (
@@ -96,7 +102,11 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
             onClick={() => setCurrentCategory(item.id as Category)}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${
               currentCategory === item.id
-                ? 'bg-[#d4cdc0] text-gray-900 font-semibold'
+                ? darkMode
+                  ? 'bg-gray-700 text-white font-semibold'
+                  : 'bg-[#d4cdc0] text-gray-900 font-semibold'
+                : darkMode
+                ? 'hover:bg-gray-700 text-gray-300'
                 : 'hover:bg-[#e8e2d5] text-gray-700'
             }`}
           >
@@ -107,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
       </nav>
 
       {/* Theme Toggle */}
-      <div className="p-2 border-t border-[#d4cdc0]">
+      <div className={`p-2 border-t ${darkMode ? 'border-gray-700' : 'border-[#d4cdc0]'}`}>
         <Toggle
           checked={darkMode}
           onChange={setDarkMode}
@@ -119,10 +129,12 @@ export const Sidebar: React.FC<SidebarProps> = memo(({
       <div className="p-2">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#e8e2d5] transition-colors"
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+            darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-[#e8e2d5] text-gray-700'
+          }`}
         >
           <Icon name={sidebarOpen ? 'arrowLeft' : 'arrowRight'} />
-          {sidebarOpen && <span className="text-gray-700 font-medium">접기</span>}
+          {sidebarOpen && <span className="font-medium">접기</span>}
         </button>
       </div>
     </div>

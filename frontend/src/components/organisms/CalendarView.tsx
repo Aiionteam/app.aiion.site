@@ -117,11 +117,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     <div className={`flex-1 overflow-y-auto ${darkMode ? 'bg-gray-900' : 'bg-[#e8e2d5]'}`}>
       <div className="p-6 max-w-6xl mx-auto space-y-4">
         {/* 종합 분석 카드 */}
-        <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-gray-900 mb-3 text-center border-b-2 border-[#d4c4a8] pb-2">
+        <div className={`rounded-2xl border-2 p-6 shadow-lg ${
+          darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-[#8B7355]'
+        }`}>
+          <h2 className={`text-xl font-bold mb-3 text-center border-b-2 pb-2 ${
+            darkMode ? 'text-white border-gray-600' : 'text-gray-900 border-[#d4c4a8]'
+          }`}>
             📊 일정 알림 보드
           </h2>
-          <div className="text-center text-gray-500 py-2 text-sm">
+          <div className={`text-center py-2 text-sm ${
+            darkMode ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             {events.length === 0 
               ? '이번 주 일정이 없습니다. 첫 일정을 추가해보세요!'
               : `총 ${events.length}개의 일정이 등록되었습니다.`}
@@ -129,19 +135,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* 캘린더 */}
-        <div className="bg-white rounded-2xl border-2 border-[#8B7355] shadow-lg p-6">
+        <div className={`rounded-2xl border-2 shadow-lg p-6 ${
+          darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-[#8B7355]'
+        }`}>
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() =>
                 setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
               }
-              className="px-4 py-2 text-2xl text-gray-700 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+              className={`px-4 py-2 text-2xl rounded-lg transition-colors ${
+                darkMode 
+                  ? 'text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-700 hover:bg-[#f5f1e8]'
+              }`}
             >
               ←
             </button>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900">📅 캘린더</h2>
-              <p className="text-lg text-gray-600 mt-1">
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>📅 캘린더</h2>
+              <p className={`text-lg mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
               </p>
             </div>
@@ -149,7 +161,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onClick={() =>
                 setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
               }
-              className="px-4 py-2 text-2xl text-gray-700 hover:bg-[#f5f1e8] rounded-lg transition-colors"
+              className={`px-4 py-2 text-2xl rounded-lg transition-colors ${
+                darkMode 
+                  ? 'text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-700 hover:bg-[#f5f1e8]'
+              }`}
             >
               →
             </button>
@@ -157,7 +173,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
           <div className="grid grid-cols-7 gap-2">
             {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-              <div key={day} className={`text-center text-base font-bold py-3 ${day === '일' ? 'text-red-500' : 'text-gray-700'}`}>
+              <div key={day} className={`text-center text-base font-bold py-3 ${
+                day === '일' ? 'text-red-500' : darkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
                 {day}
               </div>
             ))}
@@ -180,11 +198,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => setSelectedDate(date)}
                   className={`p-4 rounded-lg text-base font-medium transition-all min-h-[60px] flex flex-col items-center justify-center relative ${
                     isSelected
-                      ? 'bg-[#8B7355] text-white scale-105'
+                      ? darkMode
+                        ? 'bg-gray-600 text-white scale-105'
+                        : 'bg-[#8B7355] text-white scale-105'
                       : isToday
-                      ? 'bg-[#d4cdc0] text-gray-900 font-bold ring-2 ring-[#8B7355]'
-                      : 'hover:bg-[#f5f1e8]'
-                  } ${dayOfWeek === 0 ? 'text-red-500' : ''}`}
+                      ? darkMode
+                        ? 'bg-gray-700 text-white font-bold ring-2 ring-gray-500'
+                        : 'bg-[#d4cdc0] text-gray-900 font-bold ring-2 ring-[#8B7355]'
+                      : darkMode
+                      ? 'hover:bg-gray-700 text-gray-300'
+                      : 'hover:bg-[#f5f1e8] text-gray-700'
+                  } ${dayOfWeek === 0 && !isSelected ? 'text-red-500' : ''}`}
                 >
                   <span className={isSelected ? 'text-white' : ''}>{day}</span>
                   {hasEvents && (
@@ -197,26 +221,40 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* 일정 목록 */}
-        <div className="bg-white rounded-2xl border-2 border-[#8B7355] shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#d4c4a8]">
+        <div className={`rounded-2xl border-2 shadow-lg p-6 ${
+          darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-[#8B7355]'
+        }`}>
+          <h3 className={`text-xl font-bold mb-4 pb-3 border-b-2 ${
+            darkMode ? 'text-white border-gray-600' : 'text-gray-900 border-[#d4c4a8]'
+          }`}>
             📋 {selectedDate.getFullYear()}/{selectedDate.getMonth() + 1}월/{selectedDate.getDate()}일
           </h3>
 
           {/* 일정 입력 */}
-          <div className="mb-6 p-4 bg-[#f5f1e8] rounded-xl">
+          <div className={`mb-6 p-4 rounded-xl ${
+            darkMode ? 'bg-gray-700' : 'bg-[#f5f1e8]'
+          }`}>
             <input
               type="text"
               value={newEventText}
               onChange={(e) => setNewEventText(e.target.value.slice(0, 20))}
               placeholder="일정을 입력하세요 (최대 20자)"
-              className="w-full px-4 py-3 border-2 border-[#d4cdc0] rounded-lg mb-3 focus:outline-none focus:border-[#8B7355]"
+              className={`w-full px-4 py-3 border-2 rounded-lg mb-3 focus:outline-none ${
+                darkMode
+                  ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-gray-500'
+                  : 'bg-white border-[#d4cdc0] text-gray-900 focus:border-[#8B7355]'
+              }`}
               maxLength={20}
             />
             
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={() => setShowTimeSelector(!showTimeSelector)}
-                className="flex-1 px-4 py-2 bg-white border-2 border-[#d4cdc0] rounded-lg hover:border-[#8B7355] transition-colors"
+                className={`flex-1 px-4 py-2 border-2 rounded-lg transition-colors ${
+                  darkMode
+                    ? 'bg-gray-800 border-gray-600 text-gray-300 hover:border-gray-500'
+                    : 'bg-white border-[#d4cdc0] text-gray-900 hover:border-[#8B7355]'
+                }`}
               >
                 {newEventTime || '시간 설정'}
               </button>
@@ -227,8 +265,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 }}
                 className={`px-6 py-2 rounded-lg transition-colors ${
                   isAllDay 
-                    ? 'bg-[#8B7355] text-white' 
-                    : 'bg-white border-2 border-[#d4cdc0] hover:border-[#8B7355]'
+                    ? darkMode
+                      ? 'bg-gray-600 text-white'
+                      : 'bg-[#8B7355] text-white'
+                    : darkMode
+                    ? 'bg-gray-800 border-2 border-gray-600 text-gray-300 hover:border-gray-500'
+                    : 'bg-white border-2 border-[#d4cdc0] text-gray-900 hover:border-[#8B7355]'
                 }`}
               >
                 하루종일
@@ -236,12 +278,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
 
             {showTimeSelector && !isAllDay && (
-              <div className="mb-3 p-3 bg-white rounded-lg border-2 border-[#d4cdc0]">
+              <div className={`mb-3 p-3 rounded-lg border-2 ${
+                darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-[#d4cdc0]'
+              }`}>
                 <input
                   type="time"
                   value={newEventTime}
                   onChange={(e) => setNewEventTime(e.target.value)}
-                  className="w-full px-3 py-2 text-lg focus:outline-none"
+                  className={`w-full px-3 py-2 text-lg focus:outline-none ${
+                    darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+                  }`}
                 />
               </div>
             )}
@@ -263,19 +309,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {sortedEvents.map((event) => (
               <div
                 key={event.id}
-                className="p-4 bg-gradient-to-br from-white to-[#f5f1e8] rounded-xl border-2 border-[#d4cdc0] hover:border-[#8B7355] transition-all"
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  darkMode
+                    ? 'bg-gradient-to-br from-gray-700 to-gray-800 border-gray-600 hover:border-gray-500'
+                    : 'bg-gradient-to-br from-white to-[#f5f1e8] border-[#d4cdc0] hover:border-[#8B7355]'
+                }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="px-3 py-1 bg-[#8B7355] text-white rounded-full text-sm font-medium">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        darkMode ? 'bg-gray-600 text-white' : 'bg-[#8B7355] text-white'
+                      }`}>
                         {event.isAllDay ? '하루종일' : event.time}
                       </span>
                       {event.isAllDay && (
-                        <span className="text-xs text-gray-500">00:00부터 1시간마다 알림</span>
+                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>00:00부터 1시간마다 알림</span>
                       )}
                     </div>
-                    <div className="font-medium text-gray-900 text-lg">{event.text}</div>
+                    <div className={`font-medium text-lg ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{event.text}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -285,7 +337,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       }}
                       className={`px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
                         event.alarmOn
-                          ? 'bg-[#8B7355] text-white'
+                          ? darkMode
+                            ? 'bg-gray-600 text-white'
+                            : 'bg-[#8B7355] text-white'
+                          : darkMode
+                          ? 'bg-gray-700 text-gray-400'
                           : 'bg-gray-300 text-gray-600'
                       }`}
                     >
@@ -308,7 +364,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </div>
             ))}
             {sortedEvents.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
+              <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <p className="text-lg">일정이 없습니다</p>
                 <p className="text-sm mt-2">위에서 일정을 추가해보세요!</p>
               </div>
@@ -317,8 +373,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
 
         {/* 오늘 할 일 (캡션) */}
-        <div className="bg-white rounded-2xl border-2 border-[#8B7355] shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#d4c4a8]">
+        <div className={`rounded-2xl border-2 shadow-lg p-6 ${
+          darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-[#8B7355]'
+        }`}>
+          <h3 className={`text-xl font-bold mb-4 pb-3 border-b-2 ${
+            darkMode ? 'text-white border-gray-600' : 'text-gray-900 border-[#d4c4a8]'
+          }`}>
             ✅ 오늘 할 일
           </h3>
 
@@ -329,7 +389,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               onChange={(e) => setNewTaskText(e.target.value.slice(0, 20))}
               onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
               placeholder="오늘 할 일을 입력하세요 (최대 20자)"
-              className="flex-1 px-4 py-3 border-2 border-[#d4cdc0] rounded-lg focus:outline-none focus:border-[#8B7355]"
+              className={`flex-1 px-4 py-3 border-2 rounded-lg focus:outline-none ${
+                darkMode
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-500'
+                  : 'border-[#d4cdc0] focus:border-[#8B7355]'
+              }`}
               maxLength={20}
             />
             <Button
@@ -348,19 +412,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {todayTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 p-3 bg-[#f5f1e8] rounded-lg hover:bg-[#e8dcc8] transition-colors"
+                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  darkMode
+                    ? 'bg-gray-700 hover:bg-gray-600'
+                    : 'bg-[#f5f1e8] hover:bg-[#e8dcc8]'
+                }`}
               >
-                <span className="flex-1 text-gray-900">{task.text}</span>
+                <span className={`flex-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{task.text}</span>
                 <button
                   onClick={() => handleDeleteTask(task.id)}
-                  className="w-6 h-6 border-2 border-[#8B7355] rounded hover:bg-[#8B7355] hover:text-white transition-colors flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  className={`w-6 h-6 border-2 rounded transition-colors flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                    darkMode
+                      ? 'border-gray-500 hover:bg-gray-600 hover:text-white'
+                      : 'border-[#8B7355] hover:bg-[#8B7355] hover:text-white'
+                  }`}
                 >
                   ✓
                 </button>
               </div>
             ))}
             {todayTasks.length === 0 && (
-              <p className="text-center py-8 text-gray-500">할 일이 없습니다</p>
+              <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>할 일이 없습니다</p>
             )}
           </div>
         </div>
@@ -368,8 +440,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 삭제 확인 모달 */}
         {deleteTarget && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-sm mx-4">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">삭제하시겠습니까?</h3>
+            <div className={`rounded-2xl p-8 max-w-sm mx-4 ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>삭제하시겠습니까?</h3>
               <div className="flex gap-3">
                 <Button
                   onClick={confirmDelete}
