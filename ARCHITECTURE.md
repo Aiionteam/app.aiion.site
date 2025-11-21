@@ -17,11 +17,80 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                    Client Layer                             │
 │                                                             │
-│              Frontend (Next.js + React)                     │
-│                    Port: 3000                               │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │         Frontend (Next.js 16 + React 19)             │  │
+│  │                  Port: 3000                           │  │
+│  │                                                       │  │
+│  │  ┌───────────────────────────────────────────────┐   │  │
+│  │  │         Presentation Layer                    │   │  │
+│  │  │                                               │   │  │
+│  │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │   │  │
+│  │  │  │  Atoms   │  │ Molecules│  │Organisms │  │   │  │
+│  │  │  │          │  │          │  │          │  │   │  │
+│  │  │  │ Button   │  │  Badge   │  │ Sidebar  │  │   │  │
+│  │  │  │ Input    │  │  Card    │  │ Calendar │  │   │  │
+│  │  │  │ Icon     │  │  Message │  │  Diary   │  │   │  │
+│  │  │  └──────────┘  └──────────┘  └──────────┘  │   │  │
+│  │  │                                               │   │  │
+│  │  │  ┌───────────────────────────────────────┐  │   │  │
+│  │  │  │         Templates                     │  │   │  │
+│  │  │  │         MainLayout                    │  │   │  │
+│  │  │  └───────────────────────────────────────┘  │   │  │
+│  │  └───────────────────────────────────────────────┘   │  │
+│  │                                                       │  │
+│  │  ┌───────────────────────────────────────────────┐   │  │
+│  │  │         State Management Layer                │   │  │
+│  │  │                                               │   │  │
+│  │  │  ┌──────────────────┐  ┌──────────────────┐ │   │  │
+│  │  │  │   Zustand Store  │  │  React Query     │ │   │  │
+│  │  │  │                  │  │                  │ │   │  │
+│  │  │  │ - UI State       │  │ - Server State   │ │   │  │
+│  │  │  │ - Local State    │  │ - Cache          │ │   │  │
+│  │  │  │ - Slices:        │  │ - Auto Refetch   │ │   │  │
+│  │  │  │   • ui           │  │ - Background Sync│ │   │  │
+│  │  │  │   • diary        │  │                  │ │   │  │
+│  │  │  │   • calendar     │  │                  │ │   │  │
+│  │  │  │   • account      │  │                  │ │   │  │
+│  │  │  │   • culture      │  │                  │ │   │  │
+│  │  │  │   • health       │  │                  │ │   │  │
+│  │  │  │   • path         │  │                  │ │   │  │
+│  │  │  │   • soccer       │  │                  │ │   │  │
+│  │  │  │   • interaction  │  │                  │ │   │  │
+│  │  │  │   • avatar       │  │                  │ │   │  │
+│  │  │  └──────────────────┘  └──────────────────┘ │   │  │
+│  │  └───────────────────────────────────────────────┘   │  │
+│  │                                                       │  │
+│  │  ┌───────────────────────────────────────────────┐   │  │
+│  │  │         API Layer                            │   │  │
+│  │  │                                               │   │  │
+│  │  │  ┌───────────────────────────────────────┐  │   │  │
+│  │  │  │      API Client                       │  │   │  │
+│  │  │  │  - fetchWithRetry                     │  │   │  │
+│  │  │  │  - fetchFromGateway                   │  │   │  │
+│  │  │  │  - Auto Retry (2회)                   │  │   │  │
+│  │  │  │  - Timeout (30초)                     │  │   │  │
+│  │  │  └───────────────────────────────────────┘  │   │  │
+│  │  │                                               │   │  │
+│  │  │  ┌───────────────────────────────────────┐  │   │  │
+│  │  │  │      Endpoints                        │  │   │  │
+│  │  │  │  - Gateway: http://gateway:8080      │  │   │  │
+│  │  │  │  - Service Routes                     │  │   │  │
+│  │  │  └───────────────────────────────────────┘  │   │  │
+│  │  └───────────────────────────────────────────────┘   │  │
+│  │                                                       │  │
+│  │  ┌───────────────────────────────────────────────┐   │  │
+│  │  │         App Router (Next.js 16)              │   │  │
+│  │  │                                               │   │  │
+│  │  │  - layout.tsx (Providers: React Query)      │   │  │
+│  │  │  - page.tsx                                  │   │  │
+│  │  │  - pages/HomePage.tsx                        │   │  │
+│  │  │  - hooks/useHomePage.ts                      │   │  │
+│  │  └───────────────────────────────────────────────┘   │  │
+│  └───────────────────────────────────────────────────────┘  │
 └─────────────────────┬───────────────────────────────────────┘
                       │
-                      │ HTTP 요청
+                      │ HTTP 요청 (via API Client)
+                      │ React Query → API Client → Gateway
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Edge Layer                               │
@@ -93,6 +162,67 @@
 ---
 
 ## 각 컴포넌트 역할
+
+### 0. Frontend (Next.js + React)
+**Client Layer**
+
+#### 기술 스택
+- **Next.js 16**: App Router 기반 SSR/SSG 프레임워크
+- **React 19**: 최신 React 버전
+- **TypeScript**: 타입 안정성
+- **Tailwind CSS 4**: 유틸리티 기반 스타일링
+
+#### 상태 관리
+- **Zustand**: 클라이언트 상태 관리 (UI 상태, 로컬 상태)
+  - 슬라이스 패턴으로 도메인별 분리
+  - 10개 슬라이스: ui, diary, calendar, account, culture, health, path, soccer, interaction, avatar
+- **React Query (@tanstack/react-query)**: 서버 상태 관리
+  - 자동 캐싱 및 백그라운드 동기화
+  - staleTime: 1분
+  - refetchOnWindowFocus: false
+
+#### 컴포넌트 구조 (Atomic Design)
+```
+atoms/          # 기본 UI 요소
+  - Button, Input, Icon, Badge, Toggle, BackButton
+
+molecules/      # 복합 UI 요소
+  - CategoryBadge, ChatMessage, EventCard
+
+organisms/      # 복잡한 기능 컴포넌트
+  - Sidebar, CalendarView, DiaryView, AccountView
+  - CultureView, HealthView, PathfinderView
+  - ChatContainer, PromptInput, AvatarMode
+
+templates/      # 페이지 레이아웃
+  - MainLayout
+```
+
+#### API 통신
+- **API Client** (`lib/api/client.ts`):
+  - `fetchWithRetry`: 자동 재시도 (최대 2회)
+  - `fetchFromGateway`: Gateway를 통한 백엔드 호출
+  - Timeout: 30초
+  - 5xx 에러 및 네트워크 에러 자동 재시도
+
+#### 데이터 흐름
+```
+Component
+  ↓ useQuery (React Query)
+  ↓ API Client
+  ↓ Gateway (8080)
+  ↓ Microservice
+```
+
+#### 주요 페이지
+- `HomePage`: 메인 페이지 (카테고리별 뷰 전환)
+- `layout.tsx`: 루트 레이아웃 (Providers 포함)
+
+#### 포트
+- **3000**: 개발 서버
+- **프로덕션**: 빌드된 정적 파일 또는 Node.js 서버
+
+---
 
 ### 1. Eureka Server (Service Registry)
 **독립적인 인프라 서비스**
@@ -803,13 +933,90 @@ public User findUser(Long id) { ... }
   │    - SELECT * FROM users WHERE id = 123
   ↓ 3. Redis에 캐싱
   │    - SET user:123 {data} EX 300 (5분)
-  ↓ 4. 응답 반환
+  ↓ 4. JSON 응답 생성
+  │    {
+  │      "code": 200,
+  │      "message": "Success",
+  │      "data": {
+  │        "id": 123,
+  │        "name": "홍길동",
+  │        "email": "hong@example.com"
+  │      }
+  │    }
+  ↓ 5. HTTP 응답 반환
+  │    Status: 200 OK
+  │    Content-Type: application/json
+  │    Body: {JSON}
   
 [Gateway:8080]
-  ↓ 응답 전달
+  ↓ 1. User Service로부터 응답 수신
+  ↓ 2. 응답 검증
+  │    - Status Code 확인
+  │    - CORS 헤더 추가 (필요 시)
+  ↓ 3. Frontend로 응답 전달
+  │    Status: 200 OK
+  │    Headers: 
+  │      - Content-Type: application/json
+  │      - Access-Control-Allow-Origin: *
+  │    Body: {JSON}
   
-[Frontend]
-  ✓ 사용자 정보 표시
+[Frontend - API Client]
+  ↓ 1. fetchWithRetry()로 응답 수신
+  ↓ 2. 응답 상태 확인
+  │    - response.ok 체크
+  │    - response.status 확인
+  ↓ 3. 에러 처리
+  │    - 5xx 에러 → 자동 재시도 (최대 2회)
+  │    - 네트워크 에러 → 자동 재시도
+  │    - 타임아웃 (30초) → AbortError
+  ↓ 4. JSON 파싱
+  │    const result = await response.json()
+  │    {
+  │      code: 200,
+  │      message: "Success",
+  │      data: { ... }
+  │    }
+  
+[Frontend - React Query / 직접 처리]
+  ↓ 방법 1: React Query 사용
+  │  const { data, isLoading, error } = useQuery({
+  │    queryKey: ['user', 123],
+  │    queryFn: async () => {
+  │      const response = await fetchFromGateway('/user/123');
+  │      const result = await response.json();
+  │      if (result.code === 200) return result.data;
+  │      throw new Error(result.message);
+  │    }
+  │  });
+  │  ↓
+  │  - 자동 캐싱 (staleTime: 1분)
+  │  - 백그라운드 동기화
+  │  - 에러 상태 관리
+  │
+  ↓ 방법 2: 직접 fetch 사용
+  │  const response = await fetchFromGateway('/user/123');
+  │  const result = await response.json();
+  │  if (result.code === 200 && result.data) {
+  │    // Zustand 스토어에 저장
+  │    setUserData(result.data);
+  │  }
+  
+[Frontend - 상태 업데이트]
+  ↓ React Query 사용 시:
+  │  - QueryClient 캐시에 자동 저장
+  │  - 컴포넌트 자동 리렌더링
+  │
+  ↓ Zustand 사용 시:
+  │  - useAppStore.getState().setUserData(result.data)
+  │  - 구독 중인 컴포넌트 자동 업데이트
+  
+[Frontend - UI 렌더링]
+  ↓ 컴포넌트 리렌더링
+  │  - React Query: data, isLoading, error 상태로 UI 표시
+  │  - Zustand: 스토어 구독으로 자동 업데이트
+  ↓ 사용자 정보 표시
+  │  ✓ 이름: 홍길동
+  │  ✓ 이메일: hong@example.com
 ```
 
 ### 시나리오 2: AI 감정 분석 (예정)
@@ -867,6 +1074,353 @@ public User findUser(Long id) { ... }
 [AI Middleware:8090] (구독자)
   ↓ 이벤트 수신
   ↓ 일기 내용 감정 분석 (비동기)
+```
+
+---
+
+## 응답 처리 흐름 (Response Flow)
+
+### 전체 응답 흐름 개요
+
+```
+[Microservice] → [Gateway] → [Frontend API Client] → [상태 관리] → [UI]
+     JSON           HTTP          Response 객체        캐시/스토어    렌더링
+```
+
+### 1. 백엔드 응답 생성 (Microservice)
+
+#### 성공 응답
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "id": 123,
+    "name": "홍길동",
+    ...
+  }
+}
+```
+
+#### 에러 응답
+```json
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "code": 400,
+  "message": "Invalid request parameter",
+  "data": null
+}
+```
+
+#### 서버 에러 응답
+```json
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+
+{
+  "code": 500,
+  "message": "Internal server error",
+  "data": null
+}
+```
+
+### 2. Gateway 응답 처리
+
+#### Gateway의 역할
+1. **응답 수신**: Microservice로부터 HTTP 응답 받음
+2. **CORS 헤더 추가**: 브라우저 CORS 정책 준수
+3. **에러 변환**: 필요 시 에러 응답 포맷 통일
+4. **로깅**: 응답 로그 기록 (선택적)
+
+#### Gateway 응답 흐름
+```
+[User Service 응답]
+  ↓ HTTP 200 OK + JSON
+[Gateway]
+  ↓ 1. 응답 수신
+  ↓ 2. CORS 헤더 추가
+  │    Access-Control-Allow-Origin: *
+  │    Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+  │    Access-Control-Allow-Headers: Content-Type, Authorization
+  ↓ 3. 응답 전달 (변경 없이 그대로)
+  ↓ HTTP 200 OK + JSON + CORS Headers
+[Frontend]
+```
+
+### 3. Frontend API Client 응답 처리
+
+#### fetchWithRetry() 응답 처리
+
+```typescript
+// 1. 응답 수신
+const response = await fetch(url, options);
+
+// 2. 상태 코드 확인
+if (!response.ok && response.status >= 500) {
+  // 5xx 에러 → 자동 재시도
+  if (retries > 0) {
+    await delay(1000);
+    return fetchWithRetry(url, options, retries - 1);
+  }
+}
+
+// 3. 타임아웃 처리
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 30000);
+// 타임아웃 시 AbortError 발생 → 재시도
+
+// 4. 네트워크 에러 처리
+catch (error) {
+  if (error.name === 'AbortError' || 
+      error.message.includes('network')) {
+    // 재시도
+  }
+  throw error; // 최종 실패
+}
+```
+
+#### 응답 상태별 처리
+
+| 상태 코드 | 처리 방식 | 재시도 |
+|----------|----------|--------|
+| 200-299 | 정상 처리 | ❌ |
+| 400-499 | 클라이언트 에러 | ❌ (재시도 불필요) |
+| 500-599 | 서버 에러 | ✅ (최대 2회) |
+| 네트워크 에러 | 네트워크 문제 | ✅ (최대 2회) |
+| 타임아웃 | 30초 초과 | ✅ (최대 2회) |
+
+### 4. JSON 파싱 및 검증
+
+```typescript
+// API Client에서 응답 받음
+const response = await fetchFromGateway('/user/123');
+
+// JSON 파싱
+const result = await response.json();
+// {
+//   code: 200,
+//   message: "Success",
+//   data: { ... }
+// }
+
+// 응답 코드 검증
+if (result.code === 200 && result.data) {
+  // 성공: 데이터 사용
+  return result.data;
+} else {
+  // 실패: 에러 처리
+  throw new Error(result.message || 'Unknown error');
+}
+```
+
+### 5. 상태 관리 계층별 응답 처리
+
+#### React Query 사용 시
+
+```typescript
+const { data, isLoading, error } = useQuery({
+  queryKey: ['user', userId],
+  queryFn: async () => {
+    // 1. API 호출
+    const response = await fetchFromGateway(`/user/${userId}`);
+    
+    // 2. JSON 파싱
+    const result = await response.json();
+    
+    // 3. 에러 체크
+    if (result.code !== 200) {
+      throw new Error(result.message);
+    }
+    
+    // 4. 데이터 반환 (자동 캐싱됨)
+    return result.data;
+  },
+  staleTime: 60 * 1000, // 1분간 캐시 유지
+  retry: 2, // React Query 자체 재시도
+});
+
+// React Query가 자동으로:
+// - 캐싱: result.data를 QueryClient 캐시에 저장
+// - 동기화: 백그라운드에서 자동 refetch
+// - 상태 관리: isLoading, error 상태 제공
+// - 리렌더링: data 변경 시 컴포넌트 자동 업데이트
+```
+
+#### Zustand 사용 시
+
+```typescript
+// 직접 fetch 사용
+const response = await fetchFromGateway('/user/123');
+const result = await response.json();
+
+if (result.code === 200 && result.data) {
+  // Zustand 스토어에 저장
+  useAppStore.getState().setUserData(result.data);
+  // 또는
+  useAppStore.setState({ user: result.data });
+}
+
+// 컴포넌트에서 구독
+const user = useAppStore((state) => state.user);
+// user 변경 시 자동 리렌더링
+```
+
+### 6. 에러 처리 흐름
+
+#### 에러 발생 시나리오
+
+```
+[에러 발생]
+  ↓
+[API Client - fetchWithRetry]
+  ↓ 1차 재시도 (1초 대기)
+  ↓ 실패
+  ↓ 2차 재시도 (1초 대기)
+  ↓ 실패
+  ↓ 최종 에러 throw
+  ↓
+[React Query / 직접 처리]
+  ↓ catch (error)
+  ↓ 에러 상태 설정
+  │  - React Query: error 상태 자동 설정
+  │  - Zustand: setError(error.message)
+  ↓
+[UI 렌더링]
+  ↓ 에러 메시지 표시
+  │  - React Query: error.message
+  │  - Zustand: state.error
+```
+
+#### 에러 타입별 처리
+
+| 에러 타입 | 원인 | 처리 방식 |
+|----------|------|----------|
+| 400 Bad Request | 잘못된 요청 | 사용자에게 입력 오류 안내 |
+| 401 Unauthorized | 인증 실패 | 로그인 페이지로 리다이렉트 |
+| 403 Forbidden | 권한 없음 | 권한 필요 메시지 표시 |
+| 404 Not Found | 리소스 없음 | 404 페이지 또는 "데이터 없음" 표시 |
+| 500 Internal Server Error | 서버 에러 | 재시도 후 실패 시 "서버 오류" 메시지 |
+| Network Error | 네트워크 문제 | "연결 실패" 메시지 + 재시도 버튼 |
+| Timeout | 타임아웃 | "요청 시간 초과" 메시지 + 재시도 버튼 |
+
+### 7. 캐싱 및 동기화
+
+#### React Query 캐싱
+
+```
+[첫 요청]
+  GET /user/123
+  ↓
+  응답: { id: 123, name: "홍길동" }
+  ↓
+  QueryClient 캐시에 저장
+  │  Key: ['user', 123]
+  │  Value: { id: 123, name: "홍길동" }
+  │  staleTime: 60초
+
+[같은 데이터 재요청 (60초 이내)]
+  ↓ 캐시에서 즉시 반환 (네트워크 요청 없음)
+  ↓ UI 즉시 업데이트
+
+[60초 후]
+  ↓ 캐시가 stale 상태
+  ↓ 백그라운드에서 자동 refetch
+  ↓ 새 데이터로 캐시 업데이트
+  ↓ UI 자동 업데이트
+```
+
+#### Zustand + 수동 캐싱
+
+```typescript
+// 수동으로 캐시 관리
+const cache = new Map();
+
+async function fetchUser(id: number) {
+  // 캐시 확인
+  if (cache.has(id)) {
+    const cached = cache.get(id);
+    if (Date.now() - cached.timestamp < 60000) {
+      return cached.data; // 캐시 히트
+    }
+  }
+  
+  // API 호출
+  const response = await fetchFromGateway(`/user/${id}`);
+  const result = await response.json();
+  
+  // 캐시 저장
+  cache.set(id, {
+    data: result.data,
+    timestamp: Date.now()
+  });
+  
+  return result.data;
+}
+```
+
+### 8. UI 업데이트 흐름
+
+#### React Query 사용 시
+
+```typescript
+function UserProfile({ userId }: { userId: number }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId)
+  });
+  
+  // 자동 리렌더링:
+  // - isLoading: true → false (로딩 스피너 표시)
+  // - error: null → Error (에러 메시지 표시)
+  // - data: undefined → UserData (사용자 정보 표시)
+  
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorMessage error={error} />;
+  return <UserInfo data={data} />;
+}
+```
+
+#### Zustand 사용 시
+
+```typescript
+function UserProfile({ userId }: { userId: number }) {
+  const user = useAppStore((state) => state.user);
+  const isLoading = useAppStore((state) => state.isLoading);
+  const error = useAppStore((state) => state.error);
+  
+  // 스토어 변경 시 자동 리렌더링
+  // - user 변경 → UserInfo 업데이트
+  // - isLoading 변경 → Spinner 표시/숨김
+  // - error 변경 → ErrorMessage 표시
+  
+  useEffect(() => {
+    fetchUser(userId); // API 호출
+  }, [userId]);
+  
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorMessage error={error} />;
+  return <UserInfo data={user} />;
+}
+```
+
+### 응답 처리 요약
+
+```
+1. Microservice → JSON 응답 생성
+2. Gateway → CORS 헤더 추가 + 응답 전달
+3. API Client → fetchWithRetry로 응답 수신 + 재시도 처리
+4. JSON 파싱 → result.code, result.data 검증
+5. 상태 관리:
+   - React Query: 자동 캐싱 + 동기화
+   - Zustand: 수동 스토어 업데이트
+6. UI 업데이트:
+   - 로딩 상태 → 데이터 표시
+   - 에러 상태 → 에러 메시지 표시
 ```
 
 ---
@@ -959,11 +1513,25 @@ public User findUser(Long id) { ... }
 ---
 
 **작성일**: 2024-11-21  
-**최종 수정일**: 2024-11-21  
-**버전**: 2.0  
+**최종 수정일**: 2024-12-19  
+**버전**: 2.2  
 **프로젝트**: AIION Microservices Architecture
 
 ### 변경 이력
+- **v2.2** (2024-12-19)
+  - 응답 처리 흐름 (Response Flow) 섹션 추가
+  - 시나리오 1의 응답 처리 과정 상세화
+  - 백엔드 → Gateway → Frontend 응답 흐름 상세 설명
+  - React Query 및 Zustand의 응답 처리 방식 비교
+  - 에러 처리 및 재시도 로직 설명
+  - 캐싱 및 동기화 메커니즘 설명
+  - UI 업데이트 흐름 설명
+- **v2.1** (2024-12-19)
+  - 프론트엔드 아키텍처 상세화
+  - React Query (@tanstack/react-query) 추가 반영
+  - 프론트엔드 내부 구조 다이어그램 추가 (Atomic Design, 상태 관리 계층)
+  - Zustand 슬라이스 구조 및 React Query 통합 설명 추가
+  - API Client 구조 및 데이터 흐름 설명 추가
 - **v2.0** (2024-11-21)
   - Gateway와 Eureka 통신 메커니즘 추가 (베스트 프랙티스 설명)
   - 동시성 및 충돌 방지 메커니즘 추가
