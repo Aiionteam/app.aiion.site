@@ -54,6 +54,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	
+	// Redis (Cache, Session, Pub/Sub)
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	
 	// Selenium
 	implementation 'org.seleniumhq.selenium:selenium-java:4.19.1'
 	implementation 'org.seleniumhq.selenium:selenium-chrome-driver:4.19.1'
