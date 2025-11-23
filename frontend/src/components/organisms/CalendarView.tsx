@@ -251,7 +251,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </h3>
 
           {/* 일정 입력 */}
-          <div className={`mb-6 p-4 rounded-xl ${
+          <div className={`mb-6 p-3 sm:p-4 rounded-xl ${
             darkMode ? 'bg-[#1a1a1a]' : 'bg-[#f5f1e8]'
           }`}>
             <input
@@ -265,33 +265,62 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   : 'bg-white border-[#d4cdc0] text-gray-900 focus:border-[#8B7355]'
               }`}
               maxLength={20}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
             />
             
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-3">
               <button
-                onClick={() => setShowTimeSelector(!showTimeSelector)}
-                className={`flex-1 px-4 py-2 border-2 rounded-lg transition-colors ${
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowTimeSelector(!showTimeSelector);
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowTimeSelector(!showTimeSelector);
+                }}
+                className={`flex-1 min-h-[44px] px-4 py-2.5 border-2 rounded-lg transition-colors touch-manipulation ${
                   darkMode
-                    ? 'bg-[#121212] border-[#2a2a2a] text-gray-300 hover:border-[#333333]'
-                    : 'bg-white border-[#d4cdc0] text-gray-900 hover:border-[#8B7355]'
+                    ? 'bg-[#121212] border-[#2a2a2a] text-gray-300 active:border-[#333333] active:bg-[#1a1a1a]'
+                    : 'bg-white border-[#d4cdc0] text-gray-900 active:border-[#8B7355] active:bg-[#f5f1e8]'
                 }`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 {newEventTime || '시간 설정'}
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setIsAllDay(!isAllDay);
                   if (!isAllDay) setNewEventTime('');
                 }}
-                className={`px-6 py-2 rounded-lg transition-colors ${
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAllDay(!isAllDay);
+                  if (!isAllDay) setNewEventTime('');
+                }}
+                className={`min-h-[44px] px-6 py-2.5 rounded-lg transition-colors touch-manipulation ${
                   isAllDay 
                     ? darkMode
-                      ? 'bg-[#1a1a1a] text-white'
-                      : 'bg-[#8B7355] text-white'
+                      ? 'bg-[#1a1a1a] text-white active:bg-[#222222]'
+                      : 'bg-[#8B7355] text-white active:bg-[#6d5943]'
                     : darkMode
-                    ? 'bg-[#121212] border-2 border-[#2a2a2a] text-gray-300 hover:border-[#333333]'
-                    : 'bg-white border-2 border-[#d4cdc0] text-gray-900 hover:border-[#8B7355]'
+                    ? 'bg-[#121212] border-2 border-[#2a2a2a] text-gray-300 active:border-[#333333] active:bg-[#1a1a1a]'
+                    : 'bg-white border-2 border-[#d4cdc0] text-gray-900 active:border-[#8B7355] active:bg-[#f5f1e8]'
                 }`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 하루종일
               </button>
@@ -305,22 +334,41 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   type="time"
                   value={newEventTime}
                   onChange={(e) => setNewEventTime(e.target.value)}
-                  className={`w-full px-3 py-2 text-lg focus:outline-none ${
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  className={`w-full px-3 py-2 text-lg focus:outline-none min-h-[44px] ${
                     darkMode ? 'bg-[#121212] text-white' : 'bg-white text-gray-900'
                   }`}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 />
               </div>
             )}
 
             <Button
-              onClick={handleAddEvent}
-              className="w-full py-3 text-lg"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddEvent();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (newEventText.trim() && (isAllDay || newEventTime)) {
+                  handleAddEvent();
+                }
+              }}
+              className="w-full py-3 text-lg min-h-[44px] touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
               disabled={!newEventText.trim() || (!isAllDay && !newEventTime)}
             >
               완료
             </Button>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              일정 저장: {events.length}/100 | 휴지통 버튼을 눌러 삭제
+              일정 저장: {events.filter(e => e.date === selectedDateStr).length}/100 | 휴지통 버튼을 눌러 삭제
             </p>
           </div>
 
@@ -329,51 +377,73 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {sortedEvents.map((event) => (
               <div
                 key={event.id}
-                className={`p-4 rounded-xl border-2 transition-all ${
+                className={`p-3 sm:p-4 rounded-xl border-2 transition-all ${
                   darkMode
                     ? 'bg-gradient-to-br from-[#1a1a1a] to-[#121212] border-[#2a2a2a] hover:border-[#333333]'
                     : 'bg-gradient-to-br from-white to-[#f5f1e8] border-[#d4cdc0] hover:border-[#8B7355]'
                 }`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${
                         darkMode ? 'bg-[#1a1a1a] text-white' : 'bg-[#8B7355] text-white'
                       }`}>
                         {event.isAllDay ? '하루종일' : event.time}
                       </span>
                       {event.isAllDay && (
-                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>00:00부터 1시간마다 알림</span>
+                        <span className={`text-xs whitespace-nowrap ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>00:00부터 1시간마다 알림</span>
                       )}
                     </div>
-                    <div className={`font-medium text-lg ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{event.text}</div>
+                    <div className={`font-medium text-base sm:text-lg break-words ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{event.text}</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         handleToggleAlarm(event.id);
                       }}
-                      className={`px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleToggleAlarm(event.id);
+                      }}
+                      className={`min-h-[44px] min-w-[80px] px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap touch-manipulation ${
                         event.alarmOn
                           ? darkMode
-                            ? 'bg-[#1a1a1a] text-white'
-                            : 'bg-[#8B7355] text-white'
+                            ? 'bg-[#1a1a1a] text-white active:bg-[#222222]'
+                            : 'bg-[#8B7355] text-white active:bg-[#6d5943]'
                           : darkMode
-                          ? 'bg-[#0a0a0a] text-gray-400'
-                          : 'bg-gray-300 text-gray-600'
+                          ? 'bg-[#0a0a0a] text-gray-400 active:bg-[#1a1a1a]'
+                          : 'bg-gray-300 text-gray-600 active:bg-gray-400'
                       }`}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       알림 {event.alarmOn ? 'ON' : 'OFF'}
                     </button>
                     <button
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         setDeleteTarget({ type: 'event', id: event.id });
                       }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteTarget({ type: 'event', id: event.id });
+                      }}
+                      className="min-h-[44px] min-w-[44px] p-2 text-red-500 active:bg-red-50 rounded-lg transition-colors touch-manipulation flex items-center justify-center"
                       title="삭제"
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -402,23 +472,42 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             ✅ {selectedDate.getFullYear()}년 {selectedDate.getMonth() + 1}월 {selectedDate.getDate()}일 할 일
           </h3>
 
-          <div className="mb-4 flex gap-2">
+          <div className="mb-4 flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={newTaskText}
               onChange={(e) => setNewTaskText(e.target.value.slice(0, 20))}
               onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
               placeholder="할 일을 입력하세요 (최대 20자)"
-              className={`flex-1 px-4 py-3 border-2 rounded-lg focus:outline-none ${
+              className={`flex-1 px-4 py-3 border-2 rounded-lg focus:outline-none min-h-[44px] ${
                 darkMode
                   ? 'bg-[#1a1a1a] border-[#2a2a2a] text-white placeholder-gray-400 focus:border-[#333333]'
                   : 'border-[#d4cdc0] focus:border-[#8B7355]'
               }`}
               maxLength={20}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             />
             <Button
-              onClick={handleAddTask}
-              className="px-6"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddTask();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (newTaskText.trim()) {
+                  handleAddTask();
+                }
+              }}
+              className="px-6 min-h-[44px] touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
               disabled={!newTaskText.trim()}
             >
               추가
@@ -434,18 +523,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 key={task.id}
                 className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                   darkMode
-                    ? 'bg-[#1a1a1a] hover:bg-[#222222]'
-                    : 'bg-[#f5f1e8] hover:bg-[#e8dcc8]'
+                    ? 'bg-[#1a1a1a] active:bg-[#222222]'
+                    : 'bg-[#f5f1e8] active:bg-[#e8dcc8]'
                 }`}
               >
-                <span className={`flex-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{task.text}</span>
+                <span className={`flex-1 break-words ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{task.text}</span>
                 <button
-                  onClick={() => handleDeleteTask(task.id)}
-                  className={`w-6 h-6 border-2 rounded transition-colors flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDeleteTask(task.id);
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDeleteTask(task.id);
+                  }}
+                  className={`min-h-[44px] min-w-[44px] border-2 rounded transition-colors flex items-center justify-center text-sm font-bold flex-shrink-0 touch-manipulation ${
                     darkMode
-                      ? 'border-[#2a2a2a] hover:bg-[#1a1a1a] hover:text-white'
-                      : 'border-[#8B7355] hover:bg-[#8B7355] hover:text-white'
+                      ? 'border-[#2a2a2a] active:bg-[#1a1a1a] active:text-white'
+                      : 'border-[#8B7355] active:bg-[#8B7355] active:text-white'
                   }`}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   ✓
                 </button>

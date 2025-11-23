@@ -6,7 +6,7 @@ import { AppStore } from "../types";
  * 축구 검색 관련 상태 관리
  */
 export interface SoccerState {
-  searchResults: any | null;
+  searchResults: unknown | null;
   isLoading: boolean;
   error: string | null;
   lastSearchKeyword: string | null;
