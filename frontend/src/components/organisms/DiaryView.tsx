@@ -29,8 +29,8 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
   // Home 뷰
   if (diaryView === 'home') {
     return (
-      <div className={`flex-1 flex flex-col overflow-hidden ${darkMode ? 'bg-[#0a0a0a]' : ''}`}>
-        <div className="flex-1 overflow-y-auto p-6">
+      <div className={`flex-1 flex flex-col ${darkMode ? 'bg-[#0a0a0a]' : ''}`}>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-4xl mx-auto space-y-4">
             <div className="text-center py-4">
               <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>일기</h1>
@@ -193,11 +193,11 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
           : 'bg-gradient-to-br from-[#f5f1e8] to-[#e8dcc8]'
       }`}>
         {/* 상단 헤더 - 뒤로가기 + 날짜 */}
-        <div className={`border-b shadow-sm ${
+        <div className={`sticky top-0 z-10 border-b shadow-sm overflow-hidden ${
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#d4c4a8]'
         }`}>
-          <div className="max-w-5xl mx-auto p-4">
-            <div className="flex items-center gap-4">
+          <div className="max-w-5xl mx-auto p-2 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
               <button
                 onClick={() => {
                   setNewDiaryTitle('');
@@ -207,19 +207,26 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                   setErrorMessage('');
                   setDiaryView('home');
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors flex-shrink-0 ${
                   darkMode
                     ? 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8]'
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="font-medium">돌아가기</span>
               </button>
-              <div className="flex items-center gap-2 bg-gradient-to-r from-[#8B7355] to-[#6d5943] text-white px-4 py-2 rounded-lg shadow-sm">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div 
+                className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-[#8B7355] to-[#6d5943] text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-sm flex-1 min-w-0"
+                style={{ 
+                  touchAction: 'none',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <input
@@ -234,11 +241,14 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                       setSelectedDate({...selectedDate, year: new Date().getFullYear()});
                     }
                   }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
                   min={1000}
                   max={9999}
-                  className="w-16 bg-transparent text-center focus:outline-none text-white font-medium"
+                  className="w-12 sm:w-16 bg-transparent text-center focus:outline-none text-white font-medium text-sm sm:text-base"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 />
-                <span className="text-white/80">/</span>
+                <span className="text-white/80 text-xs sm:text-sm">/</span>
                 <input
                   type="number"
                   value={selectedDate.month}
@@ -251,11 +261,14 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                       setSelectedDate({...selectedDate, month: new Date().getMonth() + 1});
                     }
                   }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
                   min={1}
                   max={12}
-                  className="w-10 bg-transparent text-center focus:outline-none text-white font-medium"
+                  className="w-8 sm:w-10 bg-transparent text-center focus:outline-none text-white font-medium text-sm sm:text-base"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 />
-                <span className="text-white/80">/</span>
+                <span className="text-white/80 text-xs sm:text-sm">/</span>
                 <input
                   type="number"
                   value={selectedDate.day}
@@ -268,14 +281,20 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                       setSelectedDate({...selectedDate, day: new Date().getDate()});
                     }
                   }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
                   min={1}
                   max={31}
-                  className="w-10 bg-transparent text-center focus:outline-none text-white font-medium"
+                  className="w-8 sm:w-10 bg-transparent text-center focus:outline-none text-white font-medium text-sm sm:text-base"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 />
                 <select
                   value={selectedDate.dayOfWeek}
                   onChange={(e) => setSelectedDate({...selectedDate, dayOfWeek: e.target.value})}
-                  className="bg-transparent focus:outline-none text-white font-medium cursor-pointer"
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  className="bg-transparent focus:outline-none text-white font-medium cursor-pointer text-xs sm:text-sm flex-shrink-0 ml-1 sm:ml-0"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {['일', '월', '화', '수', '목', '금', '토'].map(day => (
                     <option key={day} value={day} className="bg-[#8B7355] text-white">{`${day}요일`}</option>
@@ -385,7 +404,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
       <div className={`flex-1 flex flex-col overflow-hidden ${
         darkMode ? 'bg-[#0a0a0a]' : 'bg-[#f5f1e8]'
       }`}>
-        <div className={`border-b shadow-sm p-4 ${
+        <div className={`sticky top-0 z-10 border-b shadow-sm p-4 ${
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#d4c4a8]'
         }`}>
           <div className="max-w-5xl mx-auto flex items-center gap-4">
@@ -400,7 +419,6 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">돌아가기</span>
             </button>
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>일기 리스트</h1>
           </div>
@@ -496,7 +514,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
       <div className={`flex-1 flex flex-col overflow-hidden ${
         darkMode ? 'bg-[#0a0a0a]' : 'bg-[#f5f1e8]'
       }`}>
-        <div className={`border-b shadow-sm p-4 ${
+        <div className={`sticky top-0 z-10 border-b shadow-sm p-4 ${
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#d4c4a8]'
         }`}>
           <div className="max-w-4xl mx-auto flex items-center gap-4">
@@ -514,7 +532,6 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">돌아가기</span>
             </button>
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>일기 상세</h1>
           </div>
@@ -589,7 +606,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
       <div className={`flex-1 flex flex-col overflow-hidden ${
         darkMode ? 'bg-[#0a0a0a]' : 'bg-[#f5f1e8]'
       }`}>
-        <div className={`border-b shadow-sm p-4 ${
+        <div className={`sticky top-0 z-10 border-b shadow-sm p-4 ${
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#d4c4a8]'
         }`}>
           <div className="max-w-7xl mx-auto flex items-center gap-4">
@@ -604,7 +621,6 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">돌아가기</span>
             </button>
             <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>감정 분석 그래프</h1>
           </div>
@@ -678,28 +694,28 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
             </div>
 
             {/* 감정 분석 그래프 */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-4 md:gap-6">
               {/* 주간 그래프 */}
-              <div className={`rounded-2xl border-2 p-6 shadow-lg ${
+              <div className={`rounded-2xl border-2 p-3 md:p-6 shadow-lg overflow-x-auto ${
                 darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#8B7355]'
               }`}>
-                <h2 className={`text-xl font-bold text-center mb-6 border-b-2 pb-3 ${
+                <h2 className={`text-lg md:text-xl font-bold text-center mb-4 md:mb-6 border-b-2 pb-2 md:pb-3 ${
                   darkMode 
                     ? 'text-white border-[#2a2a2a]' 
                     : 'text-gray-900 border-[#d4c4a8]'
                 }`}>감정 분석(주간)</h2>
-                <div className="relative h-64">
-                  <svg className="w-full h-full" viewBox="0 0 400 250">
+                <div className="relative h-64 min-w-[320px]">
+                  <svg className="w-full h-full" viewBox="0 0 400 250" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
                     {/* 격자선 */}
-                    <line x1="40" y1="200" x2="380" y2="200" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="150" x2="380" y2="150" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="100" x2="380" y2="100" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="50" x2="380" y2="50" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="200" x2="380" y2="200" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="150" x2="380" y2="150" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="100" x2="380" y2="100" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="50" x2="380" y2="50" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
                     
                     {/* X축 */}
-                    <line x1="40" y1="125" x2="380" y2="125" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
+                    <line x1="50" y1="125" x2="380" y2="125" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
                     {/* Y축 */}
-                    <line x1="40" y1="20" x2="40" y2="200" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
+                    <line x1="50" y1="20" x2="50" y2="200" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
                     
                     {/* 데이터 선 */}
                     <polyline
@@ -707,7 +723,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                       stroke={darkMode ? "#9ca3af" : "#8B7355"}
                       strokeWidth="3"
                       points={weeklyData.map((item, i) => {
-                        const x = 70 + (i * 45);
+                        const x = 80 + (i * 45);
                         const y = 125 - (item.score * 100);
                         return `${x},${y}`;
                       }).join(' ')}
@@ -715,7 +731,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                     
                     {/* 데이터 포인트 */}
                     {weeklyData.map((item, i) => {
-                      const x = 70 + (i * 45);
+                      const x = 80 + (i * 45);
                       const y = 125 - (item.score * 100);
                       return (
                         <circle key={i} cx={x} cy={y} r="5" fill={darkMode ? "#9ca3af" : "#8B7355"} />
@@ -724,7 +740,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                     
                     {/* X축 레이블 */}
                     {weeklyData.map((item, i) => (
-                      <text key={i} x={70 + (i * 45)} y="220" textAnchor="middle" fontSize="12" fill={darkMode ? "#d1d5db" : "#374151"}>
+                      <text key={i} x={80 + (i * 45)} y="220" textAnchor="middle" fontSize="11" fill={darkMode ? "#d1d5db" : "#374151"}>
                         {item.day}
                       </text>
                     ))}
@@ -733,26 +749,26 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
               </div>
 
               {/* 월간 그래프 */}
-              <div className={`rounded-2xl border-2 p-6 shadow-lg ${
+              <div className={`rounded-2xl border-2 p-3 md:p-6 shadow-lg overflow-x-auto ${
                 darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#8B7355]'
               }`}>
-                <h2 className={`text-xl font-bold text-center mb-6 border-b-2 pb-3 ${
+                <h2 className={`text-lg md:text-xl font-bold text-center mb-4 md:mb-6 border-b-2 pb-2 md:pb-3 ${
                   darkMode 
                     ? 'text-white border-[#2a2a2a]' 
                     : 'text-gray-900 border-[#d4c4a8]'
                 }`}>감정 분석(월간)</h2>
-                <div className="relative h-64">
-                  <svg className="w-full h-full" viewBox="0 0 400 250">
+                <div className="relative h-64 min-w-[320px]">
+                  <svg className="w-full h-full" viewBox="0 0 400 250" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
                     {/* 격자선 */}
-                    <line x1="40" y1="200" x2="380" y2="200" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="150" x2="380" y2="150" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="100" x2="380" y2="100" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
-                    <line x1="40" y1="50" x2="380" y2="50" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="200" x2="380" y2="200" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="150" x2="380" y2="150" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="100" x2="380" y2="100" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
+                    <line x1="50" y1="50" x2="380" y2="50" stroke={darkMode ? "#4b5563" : "#e5e7eb"} strokeWidth="1" />
                     
                     {/* X축 */}
-                    <line x1="40" y1="125" x2="380" y2="125" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
+                    <line x1="50" y1="125" x2="380" y2="125" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
                     {/* Y축 */}
-                    <line x1="40" y1="20" x2="40" y2="200" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
+                    <line x1="50" y1="20" x2="50" y2="200" stroke={darkMode ? "#9ca3af" : "#374151"} strokeWidth="2" />
                     
                     {/* 데이터 선 */}
                     <polyline
@@ -760,7 +776,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                       stroke={darkMode ? "#9ca3af" : "#8B7355"}
                       strokeWidth="3"
                       points={monthlyData.map((item, i) => {
-                        const x = 60 + (i * 40);
+                        const x = 70 + (i * 40);
                         const y = 125 - (item.score * 100);
                         return `${x},${y}`;
                       }).join(' ')}
@@ -768,7 +784,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                     
                     {/* 데이터 포인트 */}
                     {monthlyData.map((item, i) => {
-                      const x = 60 + (i * 40);
+                      const x = 70 + (i * 40);
                       const y = 125 - (item.score * 100);
                       return (
                         <circle key={i} cx={x} cy={y} r="4" fill={darkMode ? "#9ca3af" : "#8B7355"} />
@@ -778,7 +794,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                     {/* X축 레이블 (간격을 두고 표시) */}
                     {monthlyData.map((item, i) => (
                       i % 2 === 0 && (
-                        <text key={i} x={60 + (i * 40)} y="220" textAnchor="middle" fontSize="10" fill={darkMode ? "#d1d5db" : "#374151"}>
+                        <text key={i} x={70 + (i * 40)} y="220" textAnchor="middle" fontSize="9" fill={darkMode ? "#d1d5db" : "#374151"}>
                           {item.date}
                         </text>
                       )

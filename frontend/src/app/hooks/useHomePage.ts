@@ -11,7 +11,7 @@ import {
   Event,
   Task,
 } from '../../components/types';
-import { getLocalDateStr, extractCategories } from '../../lib';
+import { getLocalDateStr, extractCategories, parseJSONResponse } from '../../lib';
 
 export const useHomePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -24,7 +24,6 @@ export const useHomePage = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category>('home');
 
   // 카테고리별 뷰 상태
@@ -258,7 +257,16 @@ export const useHomePage = () => {
         console.log('[useHomePage] 📡 API 응답 상태:', response.status, response.statusText);
 
         if (response.ok) {
-          const result = await response.json();
+          // 최적화된 JSON 파싱 사용
+          const { data: result, error: parseError } = await parseJSONResponse(response);
+          
+          if (parseError) {
+            console.error('[useHomePage] ❌ JSON 파싱 오류:', parseError);
+            aiResponse = `데이터를 처리하는 중 오류가 발생했습니다: ${parseError}`;
+            setLoading(false);
+            return;
+          }
+          
           console.log('[useHomePage] ✅ API 응답 데이터:', result);
 
           // Code 또는 code 모두 체크 (대소문자 구분 없이)
@@ -401,8 +409,6 @@ export const useHomePage = () => {
     isListening,
     micAvailable,
     interactions,
-    isDragging,
-    setIsDragging,
     currentCategory,
     setCurrentCategory,
     menuItems,

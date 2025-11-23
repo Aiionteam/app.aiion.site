@@ -6,7 +6,14 @@
  */
 
 // API 클라이언트
-export { fetchWithRetry, fetchFromGateway, type FetchOptions } from './api/client';
+export { 
+  fetchWithRetry, 
+  fetchFromGateway, 
+  fetchJSONFromGateway,
+  parseJSONResponse,
+  type FetchOptions,
+  type JSONResponse 
+} from './api/client';
 
 // 유틸리티
 export { getLocalDateStr, getDayOfWeek, parseDateStr, daysBetween } from './utils/dateUtils';

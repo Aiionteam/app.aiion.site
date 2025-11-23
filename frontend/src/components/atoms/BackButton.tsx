@@ -5,7 +5,7 @@ interface BackButtonProps {
   label?: string;
 }
 
-export const BackButton: React.FC<BackButtonProps> = ({ onClick, label = '돌아가기' }) => {
+export const BackButton: React.FC<BackButtonProps> = ({ onClick, label }) => {
   return (
     <button
       onClick={onClick}
@@ -14,7 +14,7 @@ export const BackButton: React.FC<BackButtonProps> = ({ onClick, label = '돌아
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
       </svg>
-      <span className="font-medium">{label}</span>
+      {label && <span className="font-medium">{label}</span>}
     </button>
   );
 };

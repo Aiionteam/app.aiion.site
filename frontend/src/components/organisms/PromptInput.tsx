@@ -54,12 +54,12 @@ export const PromptInput: React.FC<PromptInputProps> = memo(({
 
   return (
     <div
-      className={`border-t p-4 ${
+      className={`border-t p-3 md:p-4 lg:p-4 ${
         darkMode ? 'border-[#2a2a2a] bg-[#121212]' : 'border-[#d4cdc0] bg-[#f5f1e8]'
       }`}
     >
-      <div className="pl-6 pr-6">
-        <div className="flex items-center gap-3">
+      <div className="pl-3 pr-3 md:pl-4 md:pr-4 lg:pl-6 lg:pr-6">
+        <div className="flex items-center gap-2 md:gap-2.5 lg:gap-3">
           <div className="flex-1 relative">
             <input
               ref={inputRef}
@@ -94,15 +94,15 @@ export const PromptInput: React.FC<PromptInputProps> = memo(({
               placeholder="프롬프트를 입력하세요. (최대 5000자)"
               readOnly={loading || avatarMode}
               maxLength={5000}
-              className={`w-full px-4 py-3 pr-16 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 ${
+              className={`w-full px-3 py-3 md:px-4 md:py-3 pr-12 md:pr-16 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-50 text-base md:text-sm ${
                 darkMode
-                  ? 'bg-[#1a1a1a] text-white border-[#2a2a2a] focus:ring-blue-500 placeholder-gray-400'
+                  ? 'bg-[#1a1a1a] text-white border-[#2a2a2a] focus:ring-[#8B7355] placeholder-gray-400'
                   : 'bg-white border-[#d4cdc0] focus:ring-[#8B7355]'
               }`}
             />
             {inputText.length > 0 && (
               <span
-                className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-xs ${
+                className={`absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-xs ${
                   darkMode ? 'text-gray-500' : 'text-gray-400'
                 }`}
               >
@@ -119,13 +119,13 @@ export const PromptInput: React.FC<PromptInputProps> = memo(({
             }}
             onClick={onMicClick}
             disabled={!micAvailable}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+            className={`min-w-[44px] min-h-[44px] w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all flex-shrink-0 active:scale-95 ${
               avatarMode
-                ? 'bg-red-500 hover:bg-red-600 text-white'
+                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
                 : micAvailable
                 ? darkMode
-                  ? 'bg-[#1a1a1a] hover:bg-[#222222] text-gray-200'
-                  : 'bg-[#d4cdc0] hover:bg-[#c4bdb0] text-gray-700'
+                  ? 'bg-[#1a1a1a] hover:bg-[#222222] active:bg-[#2a2a2a] text-gray-200'
+                  : 'bg-[#d4cdc0] hover:bg-[#c4bdb0] active:bg-[#b4ada0] text-gray-700'
                 : darkMode
                 ? 'bg-[#121212] text-gray-600 cursor-not-allowed'
                 : 'bg-[#e8dcc8] text-gray-400 cursor-not-allowed'
@@ -154,8 +154,8 @@ export const PromptInput: React.FC<PromptInputProps> = memo(({
                 }
               }}
               disabled={loading || !inputText.trim()}
-              className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${
-                darkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#8B7355] hover:bg-[#6d5943]'
+              className={`min-w-[44px] min-h-[44px] w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 active:scale-95 ${
+                darkMode ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800' : 'bg-[#8B7355] hover:bg-[#6d5943] active:bg-[#5d4933]'
               }`}
               title="전송"
             >
