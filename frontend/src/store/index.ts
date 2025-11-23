@@ -19,6 +19,7 @@ import { createHealthSlice } from './slices/healthSlice';
 import { createPathSlice } from './slices/pathSlice';
 import { createInteractionSlice } from './slices/interactionSlice';
 import { createAvatarSlice } from './slices/avatarSlice';
+import { createUserSlice } from './slices/userSlice';
 
 export const useStore = create<AppStore>()(
   devtools(
@@ -26,6 +27,9 @@ export const useStore = create<AppStore>()(
       (...a) => ({
         // 공통 UI 상태 슬라이스
         ui: createUiSlice(...a),
+        
+        // 사용자 정보 슬라이스
+        user: createUserSlice(...a),
         
         // 인터랙션 & 프롬프트 슬라이스
         interaction: createInteractionSlice(...a),
@@ -94,6 +98,10 @@ export const useStore = create<AppStore>()(
             sidebarOpen: state.ui.sidebarOpen,
             darkMode: state.ui.darkMode,
             // isDragging은 제외 (임시 상태)
+          },
+          user: {
+            user: state.user?.user || null,
+            isLoggedIn: state.user?.isLoggedIn || false,
           },
           interaction: {
             currentCategory: state.interaction.currentCategory,

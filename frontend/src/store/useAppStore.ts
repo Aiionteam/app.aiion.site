@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { AppStore } from "./types";
 import { createUiSlice } from "./slices/uiSlice";
+import { createUserSlice } from "./slices/userSlice";
 import { createSoccerSlice } from "./slices/soccerSlice";
 import { createDiarySlice } from "./slices/diarySlice";
 import { createCalendarSlice } from "./slices/calendarSlice";
@@ -41,6 +42,9 @@ import { createAvatarSlice } from "./slices/avatarSlice";
 export const useAppStore = create<AppStore>()((...a) => ({
   // 공통 UI 상태 슬라이스
   ui: createUiSlice(...a),
+  
+  // 사용자 정보 슬라이스
+  user: createUserSlice(...a),
   
   // 인터랙션 & 프롬프트 슬라이스
   interaction: createInteractionSlice(...a),
