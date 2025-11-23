@@ -114,8 +114,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     });
 
   return (
-    <div className={`flex-1 overflow-y-auto ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#e8e2d5]'}`}>
-      <div className="p-6 max-w-6xl mx-auto space-y-4">
+    <div className={`flex-1 overflow-y-auto ${darkMode ? 'bg-[#0a0a0a]' : 'bg-[#e8e2d5]'}`} style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-4">
         {/* 종합 분석 카드 */}
         <div className={`rounded-2xl border-2 p-6 shadow-lg ${
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#8B7355]'
