@@ -1,24 +1,28 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-ubi9-minimal AS build
-WORKDIR /app
+FROM gradle:8.5-jdk21 AS builder
+WORKDIR /build
 
-# Install Gradle and required tools
-RUN microdnf install -y wget unzip findutils && \
-    wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip && \
-    unzip -q gradle-8.5-bin.zip && rm gradle-8.5-bin.zip && \
-    microdnf clean all
-ENV PATH="/app/gradle-8.5/bin:${PATH}"
+# Gradle 설정 파일 먼저 복사 (의존성 캐싱을 위해)
+COPY build.gradle settings.gradle ./
+COPY gradle.properties* ./
+COPY gradle/ ./gradle/
+COPY service/culture-service/build.gradle ./service/culture-service/
 
-# Copy project files
-COPY settings.gradle build.gradle ./
-COPY server ./server
-COPY service ./service
+# 의존성 다운로드 (Gradle 캐시 활용 + 최적화 옵션)
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    gradle :service:culture-service:dependencies --no-daemon --parallel || true
 
-# Build
-RUN gradle :service:cultureService:bootJar --no-daemon
+# 나머지 소스 코드 복사
+COPY service/ ./service/
+
+# 빌드 실행 (병렬 빌드 + 빌드 캐시 활용)
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    gradle :service:culture-service:build -x test --no-daemon --parallel --build-cache
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-ubi9-minimal
-VOLUME /tmp
-COPY --from=build /app/service/cultureService/build/libs/*.jar culture-service.jar
-ENTRYPOINT ["java", "-jar", "/culture-service.jar"]
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /build/service/culture-service/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

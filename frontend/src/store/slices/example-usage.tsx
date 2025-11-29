@@ -4,6 +4,7 @@
  * 이 파일은 참고용 예시입니다. 실제 컴포넌트에서 사용하는 방법을 보여줍니다.
  */
 
+import React from "react";
 import { useAppStore } from "../useAppStore";
 
 // ============================================
