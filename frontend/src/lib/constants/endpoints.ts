@@ -16,18 +16,20 @@ export const AGENT_ENDPOINTS = {
 // TODO: 마이크로서비스 엔드포인트 (7개)
 export const SERVICE_ENDPOINTS = {
   SOCCER: '/soccer/findByWord',
-  CALENDAR: '/api/calendar',
-  DIARY: '/api/diary',
-  COMMON: '/api/common',
+  CALENDAR: '/calendar',
+  DIARY: '/diary',
+  COMMON: '/common',
   // service4: '/api/service4',
   // service5: '/api/service5',
   // service6: '/api/service6',
 } as const;
 
 // Gateway 설정
+// 브라우저에서 실행되므로 localhost 사용 (Docker 컨테이너 이름은 사용 불가)
+// Next.js 환경 변수는 NEXT_PUBLIC_ 접두사 필요
 export const GATEWAY_CONFIG = {
-  HOST: process.env.GATEWAY_HOST || 'gateway-server',
-  PORT: process.env.GATEWAY_PORT || '8080',
-  BASE_URL: `http://${process.env.GATEWAY_HOST || 'gateway-server'}:${process.env.GATEWAY_PORT || '8080'}`,
+  HOST: process.env.NEXT_PUBLIC_GATEWAY_HOST || process.env.GATEWAY_HOST || 'localhost',
+  PORT: process.env.NEXT_PUBLIC_GATEWAY_PORT || process.env.GATEWAY_PORT || '8080',
+  BASE_URL: `http://${process.env.NEXT_PUBLIC_GATEWAY_HOST || process.env.GATEWAY_HOST || 'localhost'}:${process.env.NEXT_PUBLIC_GATEWAY_PORT || process.env.GATEWAY_PORT || '8080'}`,
 } as const;
 

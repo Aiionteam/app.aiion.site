@@ -9,13 +9,15 @@
  * - 타입 안정성 보장
  */
 
-// 공통 설정 타입
+// 공통 설정 타입 (빈 인터페이스 - 필요시 확장 가능)
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface AppConfig {
-  // TODO: 공통 설정 추가
+  // 공통 설정이 필요하면 여기에 추가
 }
 
 // 슬라이스 타입 import
 import { UiSlice } from "./slices/uiSlice";
+import { UserSlice } from "./slices/userSlice";
 import { SoccerSlice } from "./slices/soccerSlice";
 import { DiarySlice } from "./slices/diarySlice";
 import { CalendarSlice } from "./slices/calendarSlice";
@@ -30,6 +32,9 @@ import { AvatarSlice } from "./slices/avatarSlice";
 export interface AppStore extends AppConfig {
   // 공통 UI 상태 슬라이스
   ui: UiSlice;
+  
+  // 사용자 정보 슬라이스
+  user: UserSlice;
   
   // 인터랙션 & 프롬프트 슬라이스
   interaction: InteractionSlice;

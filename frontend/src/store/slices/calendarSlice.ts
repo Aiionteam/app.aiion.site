@@ -33,7 +33,7 @@ export const createCalendarSlice: StateCreator<
   [],
   [],
   CalendarSlice
-> = (set, get) => ({
+> = (set) => ({
   // 초기 상태
   selectedDate: new Date(),
   currentMonth: new Date(),

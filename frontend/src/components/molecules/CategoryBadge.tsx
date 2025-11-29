@@ -18,7 +18,7 @@ export const CategoryBadge: React.FC<CategoryBadgeProps> = memo(({
         <Badge
           key={index}
           variant="primary"
-          className={darkMode ? 'text-blue-300 bg-gray-800' : ''}
+          className={darkMode ? 'text-blue-300 bg-[#121212]' : ''}
         >
           {category}
         </Badge>

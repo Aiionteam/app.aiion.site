@@ -20,7 +20,7 @@ export const Toggle: React.FC<ToggleProps> = memo(({
       )}
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-14 h-7 rounded-full transition-colors ${checked ? 'bg-gray-800' : 'bg-[#d4cdc0]'
+        className={`relative w-14 h-7 rounded-full transition-colors ${checked ? 'bg-[#121212]' : 'bg-[#d4cdc0]'
           }`}
       >
         <div

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { AppStore } from "./types";
 import { createUiSlice } from "./slices/uiSlice";
+import { createUserSlice } from "./slices/userSlice";
 import { createSoccerSlice } from "./slices/soccerSlice";
 import { createDiarySlice } from "./slices/diarySlice";
 import { createCalendarSlice } from "./slices/calendarSlice";
@@ -42,6 +43,9 @@ export const useAppStore = create<AppStore>()((...a) => ({
   // 공통 UI 상태 슬라이스
   ui: createUiSlice(...a),
   
+  // 사용자 정보 슬라이스
+  user: createUserSlice(...a),
+  
   // 인터랙션 & 프롬프트 슬라이스
   interaction: createInteractionSlice(...a),
   
@@ -59,6 +63,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
   // 서비스 슬라이스
   soccer: createSoccerSlice(...a),
   
+<<<<<<< HEAD
   // === Common Actions ===
   /**
    * 전체 스토어 초기화
@@ -68,6 +73,27 @@ export const useAppStore = create<AppStore>()((...a) => ({
     // TODO: 각 슬라이스의 reset 함수 구현 시 호출
     // 현재는 타입 호환성을 위한 기본 구현
     console.log('Store reset requested');
+=======
+  // 전체 스토어 초기화
+  resetStore: () => {
+    const state = useAppStore.getState();
+    // 각 슬라이스의 reset 메서드 호출
+    state.ui.setSidebarOpen(true);
+    state.ui.setDarkMode(false);
+    state.ui.setIsDragging(false);
+    state.interaction.setInputText('');
+    state.interaction.setLoading(false);
+    state.interaction.clearInteractions();
+    state.interaction.setCurrentCategory('home');
+    state.avatar.resetAvatar();
+    state.diary.resetDiaryView();
+    state.calendar.resetCalendar();
+    state.account.resetAccountView();
+    state.culture.resetCultureView();
+    state.health.resetHealthView();
+    state.path.resetPathfinderView();
+    state.soccer.clearResults();
+>>>>>>> develop
   },
   
   // TODO: AI 에이전트 슬라이스들 (5개)

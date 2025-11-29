@@ -14,6 +14,7 @@ import site.aiion.api.soccer.team.Team;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class PlayerServiceImpl implements PlayerService {
 
     private final PlayerRepository playerRepository;
@@ -64,6 +65,12 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public Messenger findById(PlayerModel playerModel) {
+        if (playerModel.getId() == null) {
+            return Messenger.builder()
+                    .Code(400)
+                    .message("ID가 필요합니다.")
+                    .build();
+        }
         Optional<Player> entity = playerRepository.findById(playerModel.getId());
         if (entity.isPresent()) {
             PlayerModel model = entityToModel(entity.get());
@@ -123,6 +130,12 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     @Transactional
     public Messenger update(PlayerModel playerModel) {
+        if (playerModel.getId() == null) {
+            return Messenger.builder()
+                    .Code(400)
+                    .message("ID가 필요합니다.")
+                    .build();
+        }
         Optional<Player> optionalEntity = playerRepository.findById(playerModel.getId());
         if (optionalEntity.isPresent()) {
             Player existing = optionalEntity.get();
@@ -166,6 +179,12 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     @Transactional
     public Messenger delete(PlayerModel playerModel) {
+        if (playerModel.getId() == null) {
+            return Messenger.builder()
+                    .Code(400)
+                    .message("ID가 필요합니다.")
+                    .build();
+        }
         Optional<Player> optionalEntity = playerRepository.findById(playerModel.getId());
         if (optionalEntity.isPresent()) {
             playerRepository.deleteById(playerModel.getId());

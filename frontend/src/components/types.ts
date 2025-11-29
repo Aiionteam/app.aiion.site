@@ -23,6 +23,7 @@ export interface Event {
 
 export interface Task {
   id: string;
+  date: string;
   text: string;
   completed?: boolean;
 }
@@ -98,12 +99,12 @@ export interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   prototype: SpeechRecognition;
   new(): SpeechRecognition;
 };
 
-declare var webkitSpeechRecognition: {
+declare const webkitSpeechRecognition: {
   prototype: SpeechRecognition;
   new(): SpeechRecognition;
 };

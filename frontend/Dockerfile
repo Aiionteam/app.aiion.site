@@ -1,6 +1,6 @@
 # 의존성 설치 단계
 FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 WORKDIR /app
 
 # 패키지 파일 복사
@@ -9,7 +9,7 @@ RUN pnpm install --frozen-lockfile
 
 # 빌드 단계
 FROM node:20-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 WORKDIR /app
 
 # 의존성 복사
