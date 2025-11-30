@@ -67,13 +67,6 @@ management:
     gateway:
       enabled: true
 
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.cloud.loadbalancer: DEBUG
-    reactor.netty: DEBUG
-    org.springframework.cloud.gateway.route: DEBUG
-
 eureka:
   instance:
     prefer-ip-address: true
