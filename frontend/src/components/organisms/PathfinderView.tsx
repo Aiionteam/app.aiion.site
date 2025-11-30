@@ -218,8 +218,13 @@ export const PathfinderView: React.FC<PathfinderViewProps> = ({
         </div>
         <div className="flex-1 overflow-y-auto p-4 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-4xl mx-auto space-y-4">
+<<<<<<< HEAD
+            <div className="bg-white rounded-2xl border-2 border-[#8B7355] p-8 shadow-lg">
+              <p className="text-center text-gray-500 py-8">로드맵이 있습니다.</p>
+=======
             <div className={`rounded-2xl border-2 p-8 shadow-lg ${styles.card}`}>
               <p className={`text-center py-8 ${styles.textMuted}`}>로드맵이 없습니다.</p>
+>>>>>>> develop
             </div>
           </div>
         </div>

@@ -40,3 +40,6 @@ README.md
 *.swp
 *~
 
+# Frontend (not needed for backend builds)
+frontend/
+

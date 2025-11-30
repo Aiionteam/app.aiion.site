@@ -1,8 +1,30 @@
 # 빌드 단계
 FROM gradle:8.5-jdk21 AS builder
 WORKDIR /build
+<<<<<<< HEAD:server/discovery/Dockerfile
+
+# Gradle 설정 파일 먼저 복사 (의존성 캐싱을 위해)
+COPY build.gradle settings.gradle ./
+COPY gradle.properties* ./
+COPY gradle/ ./gradle/
+COPY server/discovery/build.gradle ./server/discovery/
+
+# 의존성 다운로드 (Gradle 캐시 활용 + 최적화 옵션)
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    gradle :server:discovery:dependencies --no-daemon --parallel || true
+
+# 나머지 소스 코드 복사
+COPY server/ ./server/
+
+# 빌드 실행 (병렬 빌드 + 빌드 캐시 활용)
+RUN --mount=type=cache,target=/root/.gradle/caches \
+    --mount=type=cache,target=/root/.gradle/wrapper \
+    gradle :server:discovery:build -x test --no-daemon --parallel --build-cache
+=======
 COPY . .
 RUN gradle :server:gateway:build -x test
+>>>>>>> develop:server/gateway/Dockerfile
 
 # 실행 단계 (slim 버전 사용)
 FROM eclipse-temurin:21-jre-alpine
