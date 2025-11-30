@@ -1,5 +1,11 @@
-bootJar.enabled = true
-jar.enabled = true  // 다른 서비스에서 참조하기 위해 필요
+tasks {
+	bootJar {
+		enabled = true
+	}
+	jar {
+		enabled = true  // 다른 서비스에서 참조하기 위해 필요
+	}
+}
 
 dependencyManagement {
 	imports {
