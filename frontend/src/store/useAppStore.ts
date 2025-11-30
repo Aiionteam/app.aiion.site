@@ -63,6 +63,17 @@ export const useAppStore = create<AppStore>()((...a) => ({
   // 서비스 슬라이스
   soccer: createSoccerSlice(...a),
   
+<<<<<<< HEAD
+  // === Common Actions ===
+  /**
+   * 전체 스토어 초기화
+   * 모든 상태를 기본값으로 리셋합니다.
+   */
+  resetStore: () => {
+    // TODO: 각 슬라이스의 reset 함수 구현 시 호출
+    // 현재는 타입 호환성을 위한 기본 구현
+    console.log('Store reset requested');
+=======
   // 전체 스토어 초기화
   resetStore: () => {
     const state = useAppStore.getState();
@@ -82,6 +93,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
     state.health.resetHealthView();
     state.path.resetPathfinderView();
     state.soccer.clearResults();
+>>>>>>> develop
   },
   
   // TODO: AI 에이전트 슬라이스들 (5개)

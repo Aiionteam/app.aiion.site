@@ -8,12 +8,10 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableDiscoveryClient
 @SpringBootApplication
 @ComponentScan(basePackages = "site.aiion.api.calendar")
-public class CalendarServiceApplication 
-{
+public class CalendarServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CalendarServiceApplication.class, args);
 	}
-
 }
 
