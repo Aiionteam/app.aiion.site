@@ -48,8 +48,19 @@ export const createUserSlice: StateCreator<
     user: { ...state.user, user, isLoggedIn: true } 
   })),
   
-  logout: () => set((state) => ({ 
-    user: { ...state.user, user: null, isLoggedIn: false } 
-  })),
+  logout: () => {
+    // localStorage에서 토큰 및 persist된 상태 삭제
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('auth_provider');
+      // Zustand persist 상태도 삭제 (app-storage)
+      localStorage.removeItem('app-storage');
+    }
+    // Zustand 상태 초기화
+    set((state) => ({ 
+      user: { ...state.user, user: null, isLoggedIn: false } 
+    }));
+  },
 });
 

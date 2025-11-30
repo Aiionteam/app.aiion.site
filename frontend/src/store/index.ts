@@ -20,6 +20,7 @@ import { createPathSlice } from './slices/pathSlice';
 import { createInteractionSlice } from './slices/interactionSlice';
 import { createAvatarSlice } from './slices/avatarSlice';
 import { createUserSlice } from './slices/userSlice';
+import { createSettingsSlice } from './slices/settingsSlice';
 
 export const useStore = create<AppStore>()(
   devtools(
@@ -44,6 +45,7 @@ export const useStore = create<AppStore>()(
         culture: createCultureSlice(...a),
         health: createHealthSlice(...a),
         path: createPathSlice(...a),
+        settings: createSettingsSlice(...a),
         
         // 서비스 슬라이스
         soccer: createSoccerSlice(...a),

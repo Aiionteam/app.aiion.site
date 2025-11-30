@@ -1,6 +1,27 @@
-/**
- * 공통 타입 정의
- */
+export interface Diary {
+  id: string;
+  date: string; // YYYY-MM-DD 형식
+  title: string;
+  content: string;
+  emotion: string;
+  emotionScore: number;
+}
+
+export type Category = "home" | "calendar" | "diary" | "health" | "culture" | "account" | "path" | "settings";
+
+export interface MenuItem {
+  id: Category;
+  label: string;
+  icon: string;
+}
+
+export type DiaryView = 'home' | 'write' | 'list' | 'detail' | 'analysis';
+export type AccountView = 'home' | 'data' | 'daily' | 'monthly' | 'income' | 'tax';
+export type SettingsView = 'home' | 'profile';
+export type CultureView = 'home' | 'travel' | 'movie' | 'performance' | 'records' | 'wishlist';
+
+export type HealthView = 'home' | 'health' | 'exercise' | 'exercise-detail' | 'medication' | 'sleep' | 'nutrition' | 'records' | 'scan';
+export type PathfinderView = 'home' | 'map' | 'search' | 'favorites' | 'learning' | 'new-learning' | 'career' | 'roadmap';
 
 export interface Interaction {
   id: string;
@@ -13,106 +34,105 @@ export interface Interaction {
 
 export interface Event {
   id: string;
+  title?: string; // 옵셔널로 변경 (text를 사용할 수도 있음)
+  text?: string; // text 속성 추가
   date: string;
-  text: string;
   time?: string;
-  isAllDay: boolean;
-  notification?: boolean;
-  alarmOn?: boolean;
+  description?: string;
+  isAllDay?: boolean; // 하루종일 이벤트 여부
+  alarmOn?: boolean; // 알람 활성화 여부
+  notification?: boolean; // 알림 활성화 여부
 }
 
 export interface Task {
   id: string;
+  title?: string; // 옵셔널로 변경 (text를 사용할 수도 있음)
+  text?: string; // text 속성 추가
   date: string;
-  text: string;
-  completed?: boolean;
-}
-
-export interface Diary {
-  id: string;
-  date: string;
-  title: string;
-  content: string;
-  emotion: string;
-  emotionScore: number;
+  completed: boolean;
+  alarm?: boolean;
+  alarmTime?: string;
 }
 
 export interface Transaction {
   id: string;
-  date: string;
   title: string;
+  date: string;
   totalAmount: number;
-  expanded: boolean;
-  categories: Array<{ name: string; amount: number }>;
-  aiMessage?: string;
-  details?: string;
 }
 
-export interface MenuItem {
-  id: string;
-  label: string;
-  icon: string;
-}
-
-export type Category = "home" | "calendar" | "diary" | "health" | "culture" | "account" | "path";
-
-export type DiaryView = 'home' | 'write' | 'list' | 'detail' | 'analysis';
-export type AccountView = 'home' | 'data' | 'daily' | 'monthly' | 'income' | 'tax';
-export type CultureView = 'home' | 'travel' | 'movie' | 'performance' | 'records' | 'wishlist';
-export type HealthView = 'home' | 'exercise' | 'health' | 'records' | 'scan' | 'exercise-detail';
-export type PathfinderView = 'home' | 'learning' | 'new-learning' | 'career' | 'roadmap';
-
-// Speech Recognition 타입
+// Web Speech API 타입 정의
 export interface SpeechRecognition extends EventTarget {
-  lang: string;
   continuous: boolean;
   interimResults: boolean;
+  lang: string;
+  maxAlternatives: number;
+  serviceURI: string;
+  grammars: SpeechGrammarList;
+  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  abort(): void;
   start(): void;
   stop(): void;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
 }
 
 export interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
 }
 
 export interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
+  readonly error: string;
+  readonly message: string;
 }
 
 export interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
   [index: number]: SpeechRecognitionResult;
-  length: number;
 }
 
 export interface SpeechRecognitionResult {
+  readonly isFinal: boolean;
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
   [index: number]: SpeechRecognitionAlternative;
-  length: number;
-  isFinal: boolean;
 }
 
 export interface SpeechRecognitionAlternative {
-  transcript: string;
-  confidence: number;
+  readonly transcript: string;
+  readonly confidence: number;
 }
 
-declare const SpeechRecognition: {
-  prototype: SpeechRecognition;
-  new(): SpeechRecognition;
-};
+export interface SpeechGrammarList {
+  readonly length: number;
+  item(index: number): SpeechGrammar;
+  addFromURI(src: string, weight?: number): void;
+  addFromString(string: string, weight?: number): void;
+  [index: number]: SpeechGrammar;
+}
 
-declare const webkitSpeechRecognition: {
-  prototype: SpeechRecognition;
-  new(): SpeechRecognition;
-};
+export interface SpeechGrammar {
+  src: string;
+  weight: number;
+}
 
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof webkitSpeechRecognition;
+    SpeechRecognition: {
+      new (): SpeechRecognition;
+    };
+    webkitSpeechRecognition: {
+      new (): SpeechRecognition;
+    };
   }
 }
-

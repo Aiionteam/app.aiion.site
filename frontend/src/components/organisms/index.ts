@@ -8,4 +8,5 @@ export { AccountView } from './AccountView';
 export { CultureView } from './CultureView';
 export { HealthView } from './HealthView';
 export { PathfinderView } from './PathfinderView';
+export { SettingsView } from './SettingsView';
 

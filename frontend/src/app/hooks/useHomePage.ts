@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Interaction,
   Category,
+  MenuItem,
   SpeechRecognition,
   DiaryView as DiaryViewType,
   AccountView as AccountViewType,
   CultureView as CultureViewType,
   HealthView as HealthViewType,
   PathfinderView as PathfinderViewType,
+  SettingsView as SettingsViewType,
   Event,
   Task,
   Diary,
@@ -35,6 +37,7 @@ export const useHomePage = () => {
   const [cultureView, setCultureView] = useState<CultureViewType>('home');
   const [healthView, setHealthView] = useState<HealthViewType>('home');
   const [pathfinderView, setPathfinderView] = useState<PathfinderViewType>('home');
+  const [settingsView, setSettingsView] = useState<SettingsViewType>('home');
 
   // Calendar 관련 상태
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -100,14 +103,15 @@ export const useHomePage = () => {
     // 그 외의 경우 (로딩 중이거나 아직 성공하지 않은 경우)는 기존 데이터 유지
   }, [diariesData, diariesLoading, diariesError, diariesSuccess, diaries.length]);
 
-  const menuItems = [
-    { id: 'home', label: 'Home', icon: '🏠' },
-    { id: 'calendar', label: 'Calendar', icon: '📅' },
-    { id: 'diary', label: 'Diary', icon: '📔' },
-    { id: 'health', label: 'Health Care', icon: '🏥' },
-    { id: 'culture', label: 'Culture', icon: '🎭' },
-    { id: 'account', label: 'Account', icon: '💰' },
-    { id: 'path', label: 'Path Finder', icon: '🗺️' },
+  const menuItems: MenuItem[] = [
+    { id: 'home' as Category, label: 'Home', icon: '🏠' },
+    { id: 'calendar' as Category, label: 'Calendar', icon: '📅' },
+    { id: 'diary' as Category, label: 'Diary', icon: '📔' },
+    { id: 'health' as Category, label: 'Health Care', icon: '🏥' },
+    { id: 'culture' as Category, label: 'Culture', icon: '🎭' },
+    { id: 'account' as Category, label: 'Account', icon: '💰' },
+    { id: 'path' as Category, label: 'Path Finder', icon: '🗺️' },
+    { id: 'settings' as Category, label: 'Settings', icon: '⚙️' },
   ];
 
   // 마이크 권한 확인
@@ -387,9 +391,8 @@ export const useHomePage = () => {
           }
         }
         
-        // Gateway discovery locator를 통한 경로 사용
-        // /soccer-service/soccer/findByWord 또는 /soccer/findByWord
-        const apiUrl = `${gatewayUrl}/soccer-service/soccer/findByWord?keyword=${encodeURIComponent(searchKeyword)}`;
+        // Gateway 라우팅: /soccer/** → soccer-service:8085
+        const apiUrl = `${gatewayUrl}/soccer/soccer/findByWord?keyword=${encodeURIComponent(searchKeyword)}`;
         console.log('[useHomePage] 🔗 API 호출 URL:', apiUrl);
         console.log('[useHomePage] 🔍 검색 키워드:', searchKeyword);
         
@@ -542,6 +545,7 @@ export const useHomePage = () => {
     setCultureView('home');
     setHealthView('home');
     setPathfinderView('home');
+    setSettingsView('home');
   }, [currentCategory]);
 
   return {
@@ -572,6 +576,8 @@ export const useHomePage = () => {
     setHealthView,
     pathfinderView,
     setPathfinderView,
+    settingsView,
+    setSettingsView,
 
     // Calendar 상태
     selectedDate,

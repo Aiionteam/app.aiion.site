@@ -41,7 +41,8 @@ export const createSoccerSlice: StateCreator<
                         process.env.NEXT_PUBLIC_API_BASE_URL || 
                         'http://localhost:8080';
       
-      const apiUrl = `${gatewayUrl}/soccer-service/soccer/findByWord?keyword=${encodeURIComponent(keyword)}`;
+      // Gateway 라우팅: /soccer/** → soccer-service:8085
+      const apiUrl = `${gatewayUrl}/soccer/soccer/findByWord?keyword=${encodeURIComponent(keyword)}`;
       
       const response = await fetch(apiUrl, {
         method: 'GET',

@@ -1,7 +1,14 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button, Input } from '../atoms';
 import { DiaryView as DiaryViewType, Diary } from '../types';
-import { useCreateDiary, useUpdateDiary } from '../../app/hooks/useDiary';
+import { useCreateDiary, useUpdateDiary, useDeleteDiary } from '../../app/hooks/useDiary';
+import {
+  saveDiaryService,
+  deleteDiaryService,
+  validateDiaryForm,
+} from '../../app/services/diaryService';
+import { useStore } from '../../store';
+import { fetchUserById } from '../../app/hooks/useUserApi';
 
 interface DiaryViewProps {
   diaryView: DiaryViewType;
@@ -19,6 +26,38 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
   setDiaries,
   darkMode = false,
 }) => {
+  // 사용자 정보 가져오기
+  const user = useStore((state) => state.user?.user);
+  const [nickname, setNickname] = useState<string>('회원');
+
+  // API에서 최신 닉네임 가져오기
+  useEffect(() => {
+    const loadNickname = async () => {
+      if (user?.id) {
+        try {
+          const userInfo = await fetchUserById(user.id);
+          if (userInfo?.nickname || userInfo?.name) {
+            const cleanNickname = String(userInfo.nickname || userInfo.name).trim();
+            // 깨진 문자 필터링 (한글, 영어, 숫자, 공백만 허용)
+            const validNickname = cleanNickname.replace(/[^\uAC00-\uD7A3a-zA-Z0-9\s]/g, '');
+            if (validNickname.length > 0) {
+              setNickname(validNickname);
+            } else {
+              setNickname('회원');
+            }
+          }
+        } catch (err) {
+          console.error('[DiaryView] 닉네임 로드 실패:', err);
+          setNickname('회원');
+        }
+      } else {
+        setNickname('회원');
+      }
+    };
+
+    loadNickname();
+  }, [user?.id]);
+  
   // 디버깅: diaries prop 확인
   console.log('[DiaryView] 렌더링:', {
     diaryView,
@@ -47,6 +86,10 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
   // React Query Mutations
   const createDiaryMutation = useCreateDiary();
   const updateDiaryMutation = useUpdateDiary();
+  const deleteDiaryMutation = useDeleteDiary();
+  
+  // 삭제 확인 모달 상태
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // 일기 행 클릭 핸들러 메모이제이션
   const handleDiaryClick = useCallback((diary: Diary) => {
@@ -110,8 +153,8 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
               <div className={`leading-relaxed text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                 <p className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {diaries.length === 0 
-                    ? '아직 작성된 일기가 없습니다. 첫 일기를 작성해보세요!'
-                    : `총 ${diaries.length}개의 일기가 작성되었습니다.`}
+                    ? `${nickname}님, 아직 작성된 일기가 없습니다. 첫 일기를 작성해보세요!`
+                    : `${nickname}님, 총 ${diaries.length}개의 일기가 작성되었습니다.`}
                 </p>
               </div>
             </div>
@@ -178,89 +221,77 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
     );
   }
 
-  // 날짜 유효성 검사
-  const validateDate = () => {
-    if (selectedDate.year < 1000 || selectedDate.year > 9999) {
-      setErrorMessage('년도는 1000년부터 9999년까지 입력 가능합니다.');
-      return false;
-    }
-    if (selectedDate.month < 1 || selectedDate.month > 12) {
-      setErrorMessage('월은 1부터 12까지 입력 가능합니다.');
-      return false;
-    }
-    if (selectedDate.day < 1 || selectedDate.day > 31) {
-      setErrorMessage('일은 1부터 31일까지 입력 가능합니다.');
-      return false;
-    }
-    setErrorMessage('');
-    return true;
-  };
-
   const handleSave = async () => {
     console.log('[DiaryView] handleSave 호출');
     
-    // 날짜와 제목만 있으면 저장 가능 (내용은 선택사항)
-    if (!validateDate()) {
-      console.log('[DiaryView] 날짜 유효성 검사 실패');
-      return;
-    }
-    
-    if (!newDiaryTitle.trim()) {
-      console.log('[DiaryView] 제목 없음');
-      setErrorMessage('제목을 입력해주세요.');
+    // 서비스를 통한 유효성 검사
+    const validation = validateDiaryForm({
+      year: selectedDate.year,
+      month: selectedDate.month,
+      day: selectedDate.day,
+      title: newDiaryTitle,
+      content: newDiaryContent,
+      emotion: selectedEmotion,
+    });
+
+    if (!validation.isValid) {
+      console.log('[DiaryView] 유효성 검사 실패:', validation.errorMessage);
+      setErrorMessage(validation.errorMessage);
       return;
     }
 
-    if (newDiaryContent.length > 9999) {
-      console.log('[DiaryView] 내용 너무 김');
-      setErrorMessage('텍스트가 너무 길어 저장할 수 없습니다.');
-      return;
-    }
+    // 서비스를 통한 저장 처리
+    const result = await saveDiaryService({
+      formData: {
+        year: selectedDate.year,
+        month: selectedDate.month,
+        day: selectedDate.day,
+        title: newDiaryTitle,
+        content: newDiaryContent,
+        emotion: selectedEmotion,
+      },
+      selectedDiary,
+      createDiaryMutation,
+      updateDiaryMutation,
+    });
 
-    const diaryDate = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`;
-    console.log('[DiaryView] 저장할 일기 데이터:', { diaryDate, title: newDiaryTitle, contentLength: newDiaryContent.length });
-
-    try {
-      // 수정 모드인 경우
-      if (selectedDiary) {
-        console.log('[DiaryView] 수정 모드');
-        const updatedDiary: Diary = {
-          ...selectedDiary,
-          date: diaryDate,
-          title: newDiaryTitle,
-          content: newDiaryContent,
-          emotion: selectedEmotion,
-        };
-        
-        await updateDiaryMutation.mutateAsync(updatedDiary);
-        console.log('[DiaryView] 수정 완료');
-      } else {
-        // 새로 작성하는 경우
-        console.log('[DiaryView] 생성 모드');
-        const newDiary: Diary = {
-          id: Date.now().toString(), // 임시 ID (백엔드에서 실제 ID 반환)
-          date: diaryDate,
-          title: newDiaryTitle,
-          content: newDiaryContent,
-          emotion: selectedEmotion,
-          emotionScore: 5,
-        };
-        
-        await createDiaryMutation.mutateAsync(newDiary);
-        console.log('[DiaryView] 생성 완료');
-      }
-      
-      // 성공 시 상태 초기화 및 홈으로 이동
+    if (result.success) {
+      // 저장 성공 시 상태 초기화 및 일기 홈으로 즉시 이동
       setNewDiaryTitle('');
       setNewDiaryContent('');
       setSelectedEmotion('😊');
       setSelectedDiary(null);
       setErrorMessage('');
+      
+      // 일기 홈으로 즉시 이동 (저장 성공 후 항상 홈으로)
       setDiaryView('home');
-      console.log('[DiaryView] 저장 성공, 홈으로 이동');
-    } catch (error) {
-      console.error('[DiaryView] 일기 저장 실패:', error);
-      setErrorMessage(error instanceof Error ? error.message : '일기를 저장하는데 실패했습니다.');
+      console.log('[DiaryView] ✅ 저장 성공, 일기 홈으로 이동 완료');
+    } else {
+      // 에러 발생 시에는 write 뷰에 머물러서 에러 메시지를 볼 수 있도록 함
+      setErrorMessage(result.errorMessage || '일기를 저장하는데 실패했습니다.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedDiary) return;
+    
+    // 서비스를 통한 삭제 처리
+    const result = await deleteDiaryService({
+      selectedDiary,
+      deleteDiaryMutation,
+    });
+
+    if (result.success) {
+      // 삭제 성공 시 상태 초기화 및 이전 뷰로 이동
+      setSelectedDiary(null);
+      setShowDeleteConfirm(false);
+      setDiaries(prev => prev.filter(d => d.id !== selectedDiary.id));
+      setDiaryView(previousView === 'list' ? 'list' : 'home');
+      console.log('[DiaryView] 삭제 성공');
+    } else {
+      // 에러 발생 시
+      setErrorMessage(result.errorMessage || '일기를 삭제하는데 실패했습니다.');
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -618,23 +649,38 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
           darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#d4c4a8]'
         }`}>
           <div className="max-w-4xl mx-auto flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <button
+                onClick={() => {
+                  setSelectedDiary(null);
+                  // 이전 뷰로 돌아가기 (리스트에서 왔으면 리스트로)
+                  setDiaryView(previousView === 'list' ? 'list' : 'home');
+                }}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  darkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8]'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>일기 상세</h1>
+            </div>
             <button
-              onClick={() => {
-                setSelectedDiary(null);
-                // 이전 뷰로 돌아가기 (리스트에서 왔으면 리스트로)
-                setDiaryView(previousView === 'list' ? 'list' : 'home');
-              }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              onClick={() => setShowDeleteConfirm(true)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ml-auto ${
                 darkMode
-                  ? 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-[#f5f1e8]'
+                  ? 'text-red-400 hover:text-red-300 hover:bg-[#2a1a1a] border border-red-500/30'
+                  : 'text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-300'
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
+              <span className="font-medium">삭제</span>
             </button>
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>일기 상세</h1>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
@@ -660,6 +706,45 @@ const DiaryViewComponent: React.FC<DiaryViewProps> = ({
             </div>
           </div>
         </div>
+        
+        {/* 삭제 확인 모달 */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className={`rounded-2xl p-6 max-w-md w-full mx-4 ${
+              darkMode ? 'bg-[#1a1a1a] border border-[#2a2a2a]' : 'bg-white border border-[#d4c4a8]'
+            }`}>
+              <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                일기를 삭제하시겠습니까?
+              </h3>
+              <p className={`text-sm mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                삭제된 일기는 복구할 수 없습니다.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    darkMode
+                      ? 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteDiaryMutation.isPending}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    darkMode
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {deleteDiaryMutation.isPending ? '삭제 중...' : '삭제'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
