@@ -288,7 +288,7 @@ services:
   healthcare-service:
     build:
       context: .
-      dockerfile: ./service/healthcare-service/Dockerfile
+      dockerfile: ./service/healthcare-service/dockerfile
     container_name: healthcare-service
     ports:
       - "8087:8087"
