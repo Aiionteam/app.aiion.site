@@ -10,8 +10,11 @@ import {
   PathfinderView as PathfinderViewType,
   Event,
   Task,
+  Diary,
 } from '../../components/types';
 import { getLocalDateStr, extractCategories, parseJSONResponse } from '../../lib';
+import { useAllDiaries } from './useDiary';
+import { useStore } from '../../store';
 
 export const useHomePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -37,7 +40,65 @@ export const useHomePage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
-  const [todayTasks, setTodayTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  // Diary 관련 상태 - React Query 사용 (전체 일기 조회만 사용)
+  // /diary/diaries 엔드포인트로 전체 일기를 한 번에 가져옴
+  const { data: diariesData = [], isLoading: diariesLoading, error: diariesError, isSuccess: diariesSuccess } = useAllDiaries();
+  console.log('[useHomePage] diariesData:', {
+    length: diariesData?.length,
+    isLoading: diariesLoading,
+    isSuccess: diariesSuccess,
+    error: diariesError,
+    data: diariesData?.slice(0, 3) // 처음 3개만 로그
+  });
+  
+  const [diaries, setDiaries] = useState<Diary[]>([]);
+  
+  // React Query에서 가져온 데이터를 로컬 상태에 동기화
+  useEffect(() => {
+    console.log('[useHomePage] diariesData 변경:', {
+      length: diariesData?.length,
+      isLoading: diariesLoading,
+      isError: diariesError,
+      isSuccess: diariesSuccess,
+      data: diariesData?.slice(0, 3) // 처음 3개만 로그
+    });
+    
+    // 로딩 중이면 기존 데이터 유지 (빈 배열로 초기화하지 않음)
+    if (diariesLoading) {
+      console.log('[useHomePage] 로딩 중... (기존 데이터 유지)');
+      return;
+    }
+    
+    // 에러 발생 시에도 기존 데이터 유지 (빈 배열로 초기화하지 않음)
+    if (diariesError) {
+      console.error('[useHomePage] 에러 발생:', diariesError);
+      // 에러가 발생해도 기존 데이터는 유지
+      if (diaries.length === 0) {
+        console.log('[useHomePage] 기존 데이터가 없어서 빈 배열 유지');
+      }
+      return;
+    }
+    
+    // 데이터가 있으면 설정
+    if (diariesData && Array.isArray(diariesData) && diariesData.length > 0) {
+      console.log('[useHomePage] 일기 데이터 설정:', diariesData.length, '개', diariesData.slice(0, 3));
+      setDiaries(diariesData);
+    } else if (diariesData && !Array.isArray(diariesData)) {
+      // 단일 객체인 경우 배열로 변환
+      console.log('[useHomePage] 단일 객체를 배열로 변환:', diariesData);
+      setDiaries([diariesData]);
+    } else if (diariesSuccess && Array.isArray(diariesData) && diariesData.length === 0) {
+      // 성공했지만 데이터가 없는 경우에만 빈 배열 설정
+      console.log('[useHomePage] API 호출 성공했지만 데이터 없음, 빈 배열로 설정');
+      setDiaries([]);
+    } else if (!diariesLoading && !diariesSuccess && diaries.length === 0) {
+      // 로딩이 끝났고 성공도 아니고 기존 데이터도 없으면 빈 배열 유지
+      console.log('[useHomePage] 로딩 완료, 성공 아님, 기존 데이터 없음 - 빈 배열 유지');
+    }
+    // 그 외의 경우 (로딩 중이거나 아직 성공하지 않은 경우)는 기존 데이터 유지
+  }, [diariesData, diariesLoading, diariesError, diariesSuccess, diaries.length]);
 
   const menuItems = [
     { id: 'home', label: 'Home', icon: '🏠' },
@@ -185,6 +246,13 @@ export const useHomePage = () => {
 
     const categories = extractCategories(submitText);
 
+    // 일기 검색 관련 키워드 감지
+    const diarySearchKeywords = [
+      '일기 검색', '내 일기', '일기 찾기', '일기 조회', '일기 보기',
+      '일기 리스트', '일기 목록', '일기 확인', '일기 보여줘',
+      '일기 검색해줘', '일기 찾아줘', '일기 알려줘'
+    ];
+    
     // 축구 관련 키워드 감지 (더 많은 키워드 추가)
     const soccerKeywords = [
       '축구', '선수', '팀', '경기', '일정', '경기장', '스타디움', '스타디엄',
@@ -198,6 +266,9 @@ export const useHomePage = () => {
     ];
     
     const submitTextLower = submitText.toLowerCase();
+    const hasDiarySearchKeyword = diarySearchKeywords.some(keyword => 
+      submitTextLower.includes(keyword.toLowerCase())
+    );
     const hasSoccerKeyword = soccerKeywords.some(keyword => 
       submitTextLower.includes(keyword.toLowerCase())
     );
@@ -205,15 +276,92 @@ export const useHomePage = () => {
     console.log('[useHomePage] 🔍 키워드 감지 체크:', {
       입력텍스트: submitText,
       소문자변환: submitTextLower,
-      감지됨: hasSoccerKeyword
+      일기검색감지: hasDiarySearchKeyword,
+      축구감지: hasSoccerKeyword
     });
 
     let aiResponse = categories.length > 0
       ? '호현님의 입력을 각 카테고리에 맞게 파싱 및 저장했습니다.'
       : '입력을 저장했습니다.';
 
+    // 일기 검색 키워드가 있으면 일기 데이터에서 검색
+    if (hasDiarySearchKeyword) {
+      console.log('[useHomePage] 📔 일기 검색 키워드 감지:', submitText);
+      
+      try {
+        // 검색어 추출 (일기 검색 키워드 제거)
+        let searchKeyword = submitText;
+        const foundKeyword = diarySearchKeywords.find(keyword => 
+          submitTextLower.includes(keyword.toLowerCase())
+        );
+        if (foundKeyword) {
+          // 키워드 제거 후 나머지 텍스트를 검색어로 사용
+          searchKeyword = submitText.replace(new RegExp(foundKeyword, 'gi'), '').trim();
+        }
+        
+        console.log('[useHomePage] 🔍 일기 검색어:', searchKeyword);
+        console.log('[useHomePage] 📚 전체 일기 개수:', diaries.length);
+        
+        // 일기 데이터에서 검색 (제목, 내용에서 검색)
+        const filteredDiaries = diaries.filter(diary => {
+          if (!searchKeyword || searchKeyword.length === 0) {
+            // 검색어가 없으면 전체 일기 반환 (최근 10개)
+            return true;
+          }
+          const keywordLower = searchKeyword.toLowerCase();
+          return (
+            diary.title?.toLowerCase().includes(keywordLower) ||
+            diary.content?.toLowerCase().includes(keywordLower) ||
+            diary.date?.includes(keywordLower)
+          );
+        });
+        
+        // 최신순으로 정렬 (날짜 기준 내림차순)
+        const sortedDiaries = [...filteredDiaries].sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateB - dateA;
+        });
+        
+        // 최대 10개만 표시
+        const displayDiaries = sortedDiaries.slice(0, 10);
+        
+        console.log('[useHomePage] 📋 검색된 일기:', displayDiaries.length, '개');
+        
+        if (displayDiaries.length > 0) {
+          let diaryResponse = `📔 일기 검색 결과 (총 ${filteredDiaries.length}개, 최근 ${displayDiaries.length}개 표시)\n\n`;
+          
+          displayDiaries.forEach((diary, index) => {
+            const dateObj = new Date(diary.date);
+            const formattedDate = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
+            const contentPreview = diary.content?.length > 100 
+              ? diary.content.substring(0, 100) + '...' 
+              : diary.content || '';
+            
+            diaryResponse += `${index + 1}. ${diary.title || '제목 없음'}\n`;
+            diaryResponse += `   📅 날짜: ${formattedDate} (${diary.date})\n`;
+            diaryResponse += `   ${diary.emotion || '😊'} ${contentPreview}\n\n`;
+          });
+          
+          if (filteredDiaries.length > 10) {
+            diaryResponse += `... 외 ${filteredDiaries.length - 10}개의 일기가 더 있습니다.`;
+          }
+          
+          aiResponse = diaryResponse;
+        } else {
+          if (searchKeyword && searchKeyword.length > 0) {
+            aiResponse = `"${searchKeyword}"에 대한 일기를 찾을 수 없습니다. 현재 총 ${diaries.length}개의 일기가 있습니다.`;
+          } else {
+            aiResponse = `현재 작성된 일기가 없습니다. 일기를 작성해보세요!`;
+          }
+        }
+      } catch (error) {
+        console.error('[useHomePage] ❌ 일기 검색 중 오류:', error);
+        aiResponse = `일기 검색 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`;
+      }
+    }
     // 축구 관련 검색어가 있으면 soccer-service API 호출
-    if (hasSoccerKeyword) {
+    else if (hasSoccerKeyword) {
       try {
         console.log('[useHomePage] ⚽ 축구 관련 검색어 감지:', submitText);
         
@@ -432,8 +580,12 @@ export const useHomePage = () => {
     setCurrentMonth,
     events,
     setEvents,
-    todayTasks,
-    setTodayTasks,
+    tasks,
+    setTasks,
+
+    // Diary 상태
+    diaries,
+    setDiaries,
 
     // Handlers
     handleMicClick,

@@ -156,8 +156,11 @@ export async function fetchFromGateway(
   params: Record<string, string> = {},
   options: FetchOptions = {}
 ): Promise<Response> {
-  const gatewayHost = process.env.GATEWAY_HOST || 'gateway-server';
-  const gatewayPort = process.env.GATEWAY_PORT || '8080';
+  // 브라우저에서 실행되므로 항상 localhost 사용 (Docker 컨테이너 이름은 사용 불가)
+  // 브라우저는 컨테이너 내부 네트워크에 접근할 수 없으므로 localhost만 사용 가능
+  // 환경 변수에 gateway나 gateway-server가 있어도 브라우저에서는 해석 불가
+  const gatewayHost = 'localhost';
+  const gatewayPort = '8080';
 
   const queryString = new URLSearchParams(params).toString();
   const url = `http://${gatewayHost}:${gatewayPort}${endpoint}${queryString ? `?${queryString}` : ''}`;

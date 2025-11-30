@@ -1,5 +1,11 @@
-bootJar.enabled = true
-jar.enabled = true
+tasks {
+	bootJar {
+		enabled = true
+	}
+	jar {
+		enabled = true
+	}
+}
 
 dependencyManagement {
 	imports {

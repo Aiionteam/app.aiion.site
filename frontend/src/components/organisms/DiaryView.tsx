@@ -1,23 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button, Input } from '../atoms';
 import { DiaryView as DiaryViewType, Diary } from '../types';
+import { useCreateDiary, useUpdateDiary } from '../../app/hooks/useDiary';
 
 interface DiaryViewProps {
   diaryView: DiaryViewType;
   setDiaryView: (view: DiaryViewType) => void;
+  diaries: Diary[];
+  setDiaries: (diaries: Diary[] | ((prev: Diary[]) => Diary[])) => void;
   darkMode?: boolean;
 }
 
-export const DiaryView: React.FC<DiaryViewProps> = ({
+// 일기 행 클릭 핸들러를 메모이제이션하기 위한 함수
+const DiaryViewComponent: React.FC<DiaryViewProps> = ({
   diaryView,
   setDiaryView,
+  diaries,
+  setDiaries,
   darkMode = false,
 }) => {
-  const [diaries, setDiaries] = useState<Diary[]>([]);
+  // 디버깅: diaries prop 확인
+  console.log('[DiaryView] 렌더링:', {
+    diaryView,
+    diariesLength: diaries?.length,
+    diaries: diaries?.slice(0, 3), // 처음 3개만 로그
+    isArray: Array.isArray(diaries)
+  });
+  
   const [selectedDiary, setSelectedDiary] = useState<Diary | null>(null);
   const [newDiaryTitle, setNewDiaryTitle] = useState('');
   const [newDiaryContent, setNewDiaryContent] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState('😊');
+  // 이전 뷰를 추적하여 뒤로가기 시 올바른 뷰로 돌아가기
+  const [previousView, setPreviousView] = useState<DiaryViewType>('home');
+  
+  // 디버깅: diaries 상태 확인
+  console.log('[DiaryView] 현재 diaries:', diaries?.length, '개', diaries);
   const [selectedDate, setSelectedDate] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
@@ -25,6 +43,47 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
     dayOfWeek: ['일', '월', '화', '수', '목', '금', '토'][new Date().getDay()]
   });
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // React Query Mutations
+  const createDiaryMutation = useCreateDiary();
+  const updateDiaryMutation = useUpdateDiary();
+
+  // 일기 행 클릭 핸들러 메모이제이션
+  const handleDiaryClick = useCallback((diary: Diary) => {
+    // 수정 모드로 진입: 기존 일기 데이터를 로드
+    setSelectedDiary(diary);
+    setNewDiaryTitle(diary.title);
+    setNewDiaryContent(diary.content);
+    setSelectedEmotion(diary.emotion);
+    
+    // 날짜 파싱
+    const dateParts = diary.date.split('-');
+    const dateObj = new Date(diary.date);
+    setSelectedDate({
+      year: parseInt(dateParts[0]),
+      month: parseInt(dateParts[1]),
+      day: parseInt(dateParts[2]),
+      dayOfWeek: ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()]
+    });
+    
+    // 현재 뷰를 이전 뷰로 저장하고 write 뷰로 이동
+    setPreviousView(diaryView);
+    setDiaryView('write');
+  }, [setDiaryView, diaryView]);
+
+  // 일기 리스트 렌더링 최적화: 날짜 파싱 결과 메모이제이션
+  const processedDiaries = useMemo(() => {
+    return diaries.map((diary) => {
+      const dateObj = new Date(diary.date);
+      return {
+        ...diary,
+        year: dateObj.getFullYear(),
+        month: dateObj.getMonth() + 1,
+        day: dateObj.getDate(),
+        dayOfWeek: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'][dateObj.getDay()],
+      };
+    });
+  }, [diaries]);
 
   // Home 뷰
   if (diaryView === 'home') {
@@ -137,51 +196,72 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
     return true;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    console.log('[DiaryView] handleSave 호출');
+    
     // 날짜와 제목만 있으면 저장 가능 (내용은 선택사항)
     if (!validateDate()) {
+      console.log('[DiaryView] 날짜 유효성 검사 실패');
       return;
     }
     
     if (!newDiaryTitle.trim()) {
+      console.log('[DiaryView] 제목 없음');
       setErrorMessage('제목을 입력해주세요.');
       return;
     }
 
     if (newDiaryContent.length > 9999) {
+      console.log('[DiaryView] 내용 너무 김');
       setErrorMessage('텍스트가 너무 길어 저장할 수 없습니다.');
       return;
     }
 
-    // 수정 모드인 경우
-    if (selectedDiary) {
-      const updatedDiary: Diary = {
-        ...selectedDiary,
-        date: `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
-        title: newDiaryTitle,
-        content: newDiaryContent,
-        emotion: selectedEmotion,
-      };
-      setDiaries(diaries.map(diary => diary.id === selectedDiary.id ? updatedDiary : diary));
-    } else {
-      // 새로 작성하는 경우
-      const newDiary: Diary = {
-        id: Date.now().toString(),
-        date: `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`,
-        title: newDiaryTitle,
-        content: newDiaryContent,
-        emotion: selectedEmotion,
-        emotionScore: 5,
-      };
-      setDiaries([...diaries, newDiary]);
+    const diaryDate = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(selectedDate.day).padStart(2, '0')}`;
+    console.log('[DiaryView] 저장할 일기 데이터:', { diaryDate, title: newDiaryTitle, contentLength: newDiaryContent.length });
+
+    try {
+      // 수정 모드인 경우
+      if (selectedDiary) {
+        console.log('[DiaryView] 수정 모드');
+        const updatedDiary: Diary = {
+          ...selectedDiary,
+          date: diaryDate,
+          title: newDiaryTitle,
+          content: newDiaryContent,
+          emotion: selectedEmotion,
+        };
+        
+        await updateDiaryMutation.mutateAsync(updatedDiary);
+        console.log('[DiaryView] 수정 완료');
+      } else {
+        // 새로 작성하는 경우
+        console.log('[DiaryView] 생성 모드');
+        const newDiary: Diary = {
+          id: Date.now().toString(), // 임시 ID (백엔드에서 실제 ID 반환)
+          date: diaryDate,
+          title: newDiaryTitle,
+          content: newDiaryContent,
+          emotion: selectedEmotion,
+          emotionScore: 5,
+        };
+        
+        await createDiaryMutation.mutateAsync(newDiary);
+        console.log('[DiaryView] 생성 완료');
+      }
+      
+      // 성공 시 상태 초기화 및 홈으로 이동
+      setNewDiaryTitle('');
+      setNewDiaryContent('');
+      setSelectedEmotion('😊');
+      setSelectedDiary(null);
+      setErrorMessage('');
+      setDiaryView('home');
+      console.log('[DiaryView] 저장 성공, 홈으로 이동');
+    } catch (error) {
+      console.error('[DiaryView] 일기 저장 실패:', error);
+      setErrorMessage(error instanceof Error ? error.message : '일기를 저장하는데 실패했습니다.');
     }
-    
-    setNewDiaryTitle('');
-    setNewDiaryContent('');
-    setSelectedEmotion('😊');
-    setSelectedDiary(null);
-    setErrorMessage('');
-    setDiaryView('home');
   };
 
   // Write 뷰
@@ -205,7 +285,8 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                   setSelectedDiary(null);
                   setSelectedEmotion('😊');
                   setErrorMessage('');
-                  setDiaryView('home');
+                  // 이전 뷰로 돌아가기 (리스트에서 왔으면 리스트로, 홈에서 왔으면 홈으로)
+                  setDiaryView(previousView);
                 }}
                 className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors flex-shrink-0 ${
                   darkMode
@@ -235,7 +316,13 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
                     if (!isNaN(value) && value >= 1000 && value <= 9999) {
-                      setSelectedDate({...selectedDate, year: value});
+                      const date = new Date(value, selectedDate.month - 1, selectedDate.day);
+                      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                      setSelectedDate({
+                        ...selectedDate,
+                        year: value,
+                        dayOfWeek: dayNames[date.getDay()]
+                      });
                       setErrorMessage('');
                     } else if (e.target.value === '') {
                       setSelectedDate({...selectedDate, year: new Date().getFullYear()});
@@ -255,7 +342,16 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
                     if (!isNaN(value) && value >= 1 && value <= 12) {
-                      setSelectedDate({...selectedDate, month: value});
+                      const maxDay = new Date(selectedDate.year, value, 0).getDate();
+                      const newDay = selectedDate.day > maxDay ? maxDay : selectedDate.day;
+                      const date = new Date(selectedDate.year, value - 1, newDay);
+                      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                      setSelectedDate({
+                        ...selectedDate,
+                        month: value,
+                        day: newDay,
+                        dayOfWeek: dayNames[date.getDay()]
+                      });
                       setErrorMessage('');
                     } else if (e.target.value === '') {
                       setSelectedDate({...selectedDate, month: new Date().getMonth() + 1});
@@ -274,8 +370,15 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                   value={selectedDate.day}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    if (!isNaN(value) && value >= 1 && value <= 31) {
-                      setSelectedDate({...selectedDate, day: value});
+                    const maxDay = new Date(selectedDate.year, selectedDate.month, 0).getDate();
+                    if (!isNaN(value) && value >= 1 && value <= maxDay) {
+                      const date = new Date(selectedDate.year, selectedDate.month - 1, value);
+                      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                      setSelectedDate({
+                        ...selectedDate,
+                        day: value,
+                        dayOfWeek: dayNames[date.getDay()]
+                      });
                       setErrorMessage('');
                     } else if (e.target.value === '') {
                       setSelectedDate({...selectedDate, day: new Date().getDate()});
@@ -290,7 +393,24 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                 />
                 <select
                   value={selectedDate.dayOfWeek}
-                  onChange={(e) => setSelectedDate({...selectedDate, dayOfWeek: e.target.value})}
+                  onChange={(e) => {
+                    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                    const currentDate = new Date(selectedDate.year, selectedDate.month - 1, selectedDate.day);
+                    const currentDayOfWeek = currentDate.getDay();
+                    const targetDayOfWeek = dayNames.indexOf(e.target.value);
+                    const diff = targetDayOfWeek - currentDayOfWeek;
+                    const newDate = new Date(currentDate);
+                    newDate.setDate(currentDate.getDate() + diff);
+                    const maxDay = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0).getDate();
+                    const adjustedDay = Math.min(newDate.getDate(), maxDay);
+                    setSelectedDate({
+                      ...selectedDate,
+                      day: adjustedDay,
+                      month: newDate.getMonth() + 1,
+                      year: newDate.getFullYear(),
+                      dayOfWeek: e.target.value
+                    });
+                  }}
                   onTouchStart={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}
                   className="bg-transparent focus:outline-none text-white font-medium cursor-pointer text-xs sm:text-sm flex-shrink-0 ml-1 sm:ml-0"
@@ -429,21 +549,19 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
               darkMode ? 'bg-[#121212] border-[#2a2a2a]' : 'bg-white border-[#8B7355]'
             }`}>
               {/* 테이블 */}
-              {diaries.length === 0 ? (
+              {!diaries || !Array.isArray(diaries) || diaries.length === 0 ? (
                 <div className="p-8">
-                  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>작성된 일기가 없습니다.</p>
+                  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {diaries === undefined 
+                      ? '일기를 불러오는 중...' 
+                      : `작성된 일기가 없습니다. (diaries: ${diaries ? (Array.isArray(diaries) ? diaries.length : 'not array') : 'null'})`}
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                   <table className="w-full">
                     <tbody>
-                      {diaries.map((diary, index) => {
-                        const dateObj = new Date(diary.date);
-                        const year = dateObj.getFullYear();
-                        const month = dateObj.getMonth() + 1;
-                        const day = dateObj.getDate();
-                        const dayOfWeek = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'][dateObj.getDay()];
-                        
+                      {processedDiaries.map((diary) => {
                         return (
                           <tr
                             key={diary.id}
@@ -452,25 +570,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                                 ? 'border-[#2a2a2a] hover:bg-[#1a1a1a]'
                                 : 'border-[#d4c4a8] hover:bg-[#f5f1e8]'
                             }`}
-                            onClick={() => {
-                              // 수정 모드로 진입: 기존 일기 데이터를 로드
-                              setSelectedDiary(diary);
-                              setNewDiaryTitle(diary.title);
-                              setNewDiaryContent(diary.content);
-                              setSelectedEmotion(diary.emotion);
-                              
-                              // 날짜 파싱
-                              const dateParts = diary.date.split('-');
-                              const dateObj = new Date(diary.date);
-                              setSelectedDate({
-                                year: parseInt(dateParts[0]),
-                                month: parseInt(dateParts[1]),
-                                day: parseInt(dateParts[2]),
-                                dayOfWeek: ['일', '월', '화', '수', '목', '금', '토'][dateObj.getDay()]
-                              });
-                              
-                              setDiaryView('write');
-                            }}
+                            onClick={() => handleDiaryClick(diary)}
                           >
                             <td className={`border-r p-4 ${darkMode ? 'border-[#2a2a2a]' : 'border-[#d4c4a8]'}`}>
                               <div className="flex items-center gap-2">
@@ -483,16 +583,16 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                               </div>
                             </td>
                             <td className={`border-r p-4 text-center w-24 ${darkMode ? 'border-[#2a2a2a]' : 'border-[#d4c4a8]'}`}>
-                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{year}</span>
+                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{diary.year}</span>
                             </td>
                             <td className={`border-r p-4 text-center w-20 ${darkMode ? 'border-[#2a2a2a]' : 'border-[#d4c4a8]'}`}>
-                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{month}</span>
+                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{diary.month}</span>
                             </td>
                             <td className={`border-r p-4 text-center w-20 ${darkMode ? 'border-[#2a2a2a]' : 'border-[#d4c4a8]'}`}>
-                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{day}</span>
+                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{diary.day}</span>
                             </td>
                             <td className="p-4 text-center w-28">
-                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{dayOfWeek}</span>
+                              <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{diary.dayOfWeek}</span>
                             </td>
                           </tr>
                         );
@@ -521,7 +621,8 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
             <button
               onClick={() => {
                 setSelectedDiary(null);
-                setDiaryView('list');
+                // 이전 뷰로 돌아가기 (리스트에서 왔으면 리스트로)
+                setDiaryView(previousView === 'list' ? 'list' : 'home');
               }}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 darkMode
@@ -811,3 +912,15 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
 
   return null;
 };
+
+// 메모이제이션: props가 변경되지 않으면 재렌더링 방지
+export const DiaryView = React.memo(DiaryViewComponent, (prevProps, nextProps) => {
+  // props 비교 함수: true를 반환하면 재렌더링 안 함, false면 재렌더링
+  return (
+    prevProps.diaryView === nextProps.diaryView &&
+    prevProps.darkMode === nextProps.darkMode &&
+    prevProps.diaries === nextProps.diaries && // 배열 참조 비교
+    prevProps.setDiaryView === nextProps.setDiaryView &&
+    prevProps.setDiaries === nextProps.setDiaries
+  );
+});

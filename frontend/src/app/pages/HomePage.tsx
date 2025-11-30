@@ -31,8 +31,10 @@ export const HomePage: React.FC = () => {
     setCurrentMonth,
     events,
     setEvents,
-    todayTasks,
-    setTodayTasks,
+    tasks,
+    setTasks,
+    diaries,
+    setDiaries,
     darkMode,
   } = hookData;
 
@@ -44,6 +46,8 @@ export const HomePage: React.FC = () => {
           <DiaryView
             diaryView={diaryView}
             setDiaryView={setDiaryView}
+            diaries={diaries}
+            setDiaries={setDiaries}
             darkMode={darkMode}
           />
         );
@@ -56,8 +60,9 @@ export const HomePage: React.FC = () => {
             setCurrentMonth={setCurrentMonth}
             events={events}
             setEvents={setEvents}
-            todayTasks={todayTasks}
-            setTodayTasks={setTodayTasks}
+            tasks={tasks}
+            setTasks={setTasks}
+            diaries={diaries}
             darkMode={darkMode}
           />
         );
@@ -114,8 +119,10 @@ export const HomePage: React.FC = () => {
     setCurrentMonth,
     events,
     setEvents,
-    todayTasks,
-    setTodayTasks,
+    tasks,
+    setTasks,
+    diaries,
+    setDiaries,
     darkMode,
   ]);
 

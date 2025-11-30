@@ -3,7 +3,7 @@ rootProject.name = 'spring-server'
 // Server modules
 include 'server'
 project(':server').projectDir = file('server')
-include 'server:discovery'
+include 'server:gateway'
 include 'server:config'
 include 'server:eureka'
 

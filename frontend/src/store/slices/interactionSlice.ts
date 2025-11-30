@@ -29,7 +29,7 @@ export const createInteractionSlice: StateCreator<
   [],
   [],
   InteractionSlice
-> = (set, get) => ({
+> = (set) => ({
   // 초기 상태
   inputText: '',
   loading: false,
