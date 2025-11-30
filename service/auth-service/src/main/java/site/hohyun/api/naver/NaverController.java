@@ -119,38 +119,32 @@ public class NaverController {
                 Map<String, Object> extractedUserInfo = naverOAuthService.extractUserInfo(userInfo);
                 
                 // 3. User 테이블에서 사용자 조회 또는 생성
+                // 간단한 로직: 있으면 통과, 없으면 생성
                 String email = (String) extractedUserInfo.get("email");
                 String name = (String) extractedUserInfo.get("nickname");
                 String providerId = (String) extractedUserInfo.get("naver_id");
                 
-                // 이메일과 제공자로 기존 사용자 조회
+                // 1단계: 사용자 조회
                 site.hohyun.api.user.UserResponse user = userServiceClient.findByEmailAndProvider(email, "naver");
                 
+                // 2단계: 없으면 생성
                 if (user == null) {
-                    // 사용자가 없으면 새로 생성 시도
-                    System.out.println("사용자 없음, 새로 생성 시도: " + email);
+                    System.out.println("[NaverController] 사용자 없음, 새로 생성 시도: " + email);
                     user = userServiceClient.saveUser(name, email, "naver", providerId);
                     
-                    // saveUser가 null을 반환한 경우 (중복 키 에러 등으로 인한 실패 가능)
-                    // 다시 한 번 조회를 시도 (동시성 문제나 네트워크 지연으로 인한 경우 대비)
-                    if (user == null || user.getId() == null) {
-                        System.out.println("사용자 생성 실패 또는 null 반환, 재조회 시도: " + email);
+                    // 3단계: 생성 실패 시 (중복 키 등으로 이미 생성됨) 다시 조회
+                    if (user == null) {
+                        System.out.println("[NaverController] 사용자 생성 실패 (중복 가능), 재조회: " + email);
                         user = userServiceClient.findByEmailAndProvider(email, "naver");
-                        
-                        if (user != null && user.getId() != null) {
-                            System.out.println("재조회 성공 - 이미 존재하는 사용자: " + user.getId() + " (" + email + ")");
-                        } else {
-                            throw new RuntimeException("사용자 생성 및 조회 실패 - user-service와 통신에 문제가 있습니다. email: " + email);
-                        }
-                    } else {
-                        System.out.println("새로운 사용자 생성 성공: " + user.getId() + " (" + email + ")");
                     }
+                    
+                    // 최종 확인: 그래도 없으면 에러
+                    if (user == null || user.getId() == null) {
+                        throw new RuntimeException("사용자 생성 및 조회 실패 - user-service와 통신에 문제가 있습니다. email: " + email);
+                    }
+                    System.out.println("[NaverController] 사용자 처리 완료: ID=" + user.getId() + ", email=" + email);
                 } else {
-                    System.out.println("기존 사용자 조회 성공: " + user.getId() + " (" + email + ")");
-                }
-                
-                if (user == null || user.getId() == null) {
-                    throw new RuntimeException("사용자 조회/생성 실패 - user-service와 통신에 문제가 있습니다.");
+                    System.out.println("[NaverController] 기존 사용자 조회 성공: ID=" + user.getId() + ", email=" + email);
                 }
                 
                 // 4. JWT 토큰 생성 (User 테이블의 ID 사용)

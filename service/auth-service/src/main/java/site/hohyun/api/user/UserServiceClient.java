@@ -33,6 +33,8 @@ public class UserServiceClient {
     /**
      * 이메일과 제공자로 사용자 조회
      * 컨테이너 간 직접 통신이므로 게이트웨이 경로(/user) 제외
+     * 
+     * @return 사용자가 있으면 UserResponse 반환, 없으면 null 반환
      */
     public UserResponse findByEmailAndProvider(String email, String provider) {
         try {
@@ -59,15 +61,11 @@ public class UserServiceClient {
                     Object codeObj = body.get("Code");
                     if (codeObj instanceof Number) {
                         code = ((Number) codeObj).intValue();
-                    } else if (codeObj instanceof Integer) {
-                        code = (Integer) codeObj;
                     }
                 } else if (body.containsKey("code")) {
                     Object codeObj = body.get("code");
                     if (codeObj instanceof Number) {
                         code = ((Number) codeObj).intValue();
-                    } else if (codeObj instanceof Integer) {
-                        code = (Integer) codeObj;
                     }
                 }
                 
@@ -84,20 +82,26 @@ public class UserServiceClient {
                             .provider((String) data.get("provider"))
                             .providerId((String) data.get("providerId"))
                             .build();
-                        System.out.println("[UserServiceClient] 사용자 조회 성공: " + userResponse.getId());
+                        System.out.println("[UserServiceClient] 사용자 조회 성공: ID=" + userResponse.getId() + ", email=" + email);
                         return userResponse;
-                    } else {
-                        System.out.println("[UserServiceClient] 사용자 조회 실패 - data 필드가 null입니다. body: " + body);
                     }
-                } else {
-                    System.out.println("[UserServiceClient] 사용자 조회 실패 - 응답 코드: " + code + ", 메시지: " + body.get("message") + ", 전체 body: " + body);
                 }
-            } else {
-                System.out.println("[UserServiceClient] 사용자 조회 실패 - 응답 body가 null입니다.");
+                // 404 또는 다른 코드는 사용자 없음으로 간주
+                System.out.println("[UserServiceClient] 사용자 없음 (코드: " + code + "), email: " + email);
             }
             return null;
+        } catch (HttpClientErrorException e) {
+            // 404는 사용자 없음을 의미 (정상 케이스)
+            if (e.getStatusCode().value() == 404) {
+                System.out.println("[UserServiceClient] 사용자 없음 (404), email: " + email);
+                return null;
+            }
+            // 다른 4xx 에러는 예외로 처리
+            System.err.println("[UserServiceClient] 사용자 조회 클라이언트 에러: " + e.getStatusCode() + ", email: " + email);
+            e.printStackTrace();
+            return null;
         } catch (Exception e) {
-            System.err.println("[UserServiceClient] 사용자 조회 예외 발생: " + e.getMessage());
+            System.err.println("[UserServiceClient] 사용자 조회 예외 발생: " + e.getMessage() + ", email: " + email);
             e.printStackTrace();
             return null;
         }

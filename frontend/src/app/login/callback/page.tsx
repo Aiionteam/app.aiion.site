@@ -94,7 +94,10 @@ function OAuthCallbackContent() {
               setShowNicknameModal(true);
             } else {
               // 이미 닉네임이 설정되어 있으면 홈으로 바로 이동
-              router.push('/');
+              // 상태가 제대로 반영되도록 약간의 지연 후 이동
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 100);
             }
           } else {
             throw new Error('JWT 토큰 형식이 올바르지 않습니다.');
@@ -136,7 +139,10 @@ function OAuthCallbackContent() {
         });
       }
       setShowNicknameModal(false);
-      router.push('/');
+      // 상태가 제대로 반영되도록 약간의 지연 후 이동
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } catch (error) {
       console.error('[OAuthCallback] 닉네임 저장 실패:', error);
       throw error;

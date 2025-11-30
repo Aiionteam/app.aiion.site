@@ -34,12 +34,52 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const styles = getCommonStyles(darkMode);
   const user = useStore((state) => state.user?.user);
   const login = useStore((state) => state.user?.login);
-  const logout = useStore((state) => state.user?.logout);
+  
   const [nickname, setNickname] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // 로그아웃 헬퍼 함수 (함수가 없을 때 사용)
+  const performLogout = () => {
+    console.log('[SettingsView] performLogout 호출됨 - 강제 로그아웃 처리');
+    if (typeof window !== 'undefined') {
+      // 모든 상태 정리
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('auth_provider');
+      localStorage.removeItem('app-storage');
+      sessionStorage.clear();
+      
+      // 모든 쿠키 삭제
+      const cookies = document.cookie.split(';');
+      cookies.forEach(cookie => {
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+        // 모든 경로와 도메인에서 쿠키 삭제 시도
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=localhost`;
+      });
+      
+      // Zustand 상태도 초기화 (set 함수 사용)
+      const store = useStore.getState();
+      useStore.setState((state) => ({
+        user: {
+          ...state.user,
+          user: null,
+          isLoggedIn: false,
+        },
+      }));
+      
+      console.log('[SettingsView] 강제 로그아웃 완료 (쿠키 포함) - 페이지 이동');
+      setTimeout(() => {
+        window.location.replace('/');
+      }, 100);
+    }
+  };
 
   // 사용자 정보 로드
   useEffect(() => {
@@ -253,30 +293,41 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className={`rounded-2xl border-2 p-8 shadow-lg ${styles.card}`}>
               <h2 className={`text-xl font-bold mb-4 ${styles.title}`}>계정 관리</h2>
               <div className="space-y-3">
-                <Button
-                  onClick={() => {
-                    if (logout) {
-                      console.log('[SettingsView] 로그아웃 시작');
-                      logout();
-                      console.log('[SettingsView] 로그아웃 완료, 페이지 리다이렉트');
-                      // 로그아웃 후 랜딩 페이지로 강제 이동 (전체 페이지 리로드)
-                      if (typeof window !== 'undefined') {
-                        // 모든 localStorage 항목 확인 (디버깅)
-                        console.log('[SettingsView] 로그아웃 전 localStorage:', {
-                          access_token: localStorage.getItem('access_token') ? '존재' : '없음',
-                          refresh_token: localStorage.getItem('refresh_token') ? '존재' : '없음',
-                          app_storage: localStorage.getItem('app-storage') ? '존재' : '없음',
-                        });
-                        
-                        // 완전한 페이지 리로드를 위해 window.location.replace 사용
-                        window.location.replace('/');
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[SettingsView] 로그아웃 버튼 클릭됨');
+                    
+                    // useStore에서 직접 logout 함수 가져오기
+                    const store = useStore.getState();
+                    const logoutFn = store.user?.logout;
+                    
+                    console.log('[SettingsView] store.user:', store.user);
+                    console.log('[SettingsView] logoutFn 함수 존재:', !!logoutFn);
+                    console.log('[SettingsView] logoutFn 함수 타입:', typeof logoutFn);
+                    
+                    if (logoutFn && typeof logoutFn === 'function') {
+                      console.log('[SettingsView] logout 함수 호출 시작');
+                      try {
+                        // logout 함수 내에서 모든 상태 정리 및 랜딩 페이지로 리다이렉트 처리
+                        logoutFn();
+                      } catch (error) {
+                        console.error('[SettingsView] logout 함수 실행 중 에러:', error);
+                        // 에러 발생 시에도 강제로 로그아웃 처리
+                        performLogout();
                       }
+                    } else {
+                      console.warn('[SettingsView] logout 함수가 없거나 함수가 아닙니다. 강제 로그아웃 수행');
+                      // 함수가 없어도 강제로 로그아웃 처리
+                      performLogout();
                     }
                   }}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white border-red-600"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white border-red-600 rounded-lg px-4 py-3 font-medium transition-colors active:scale-95 transition-transform"
                 >
                   로그아웃
-                </Button>
+                </button>
               </div>
             </div>
           </div>

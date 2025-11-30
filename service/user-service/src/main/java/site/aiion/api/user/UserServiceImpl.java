@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import site.aiion.api.user.common.domain.Messenger;
 
@@ -18,6 +20,9 @@ import site.aiion.api.user.common.domain.Messenger;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UserModel entityToModel(User entity) {
         return UserModel.builder()
@@ -116,8 +121,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public Messenger save(UserModel userModel) {
+        // save 전에 먼저 조회 시도 (중복 키 에러 방지)
+        if (userModel.getEmail() != null && userModel.getProvider() != null) {
+            Optional<User> existingUser = userRepository.findByEmailAndProvider(
+                userModel.getEmail(), 
+                userModel.getProvider()
+            );
+            if (existingUser.isPresent()) {
+                // 이미 존재하는 사용자 - 기존 사용자 정보 반환
+                UserModel model = entityToModel(existingUser.get());
+                return Messenger.builder()
+                        .Code(200)
+                        .message("이미 존재하는 사용자: " + existingUser.get().getId())
+                        .data(model)
+                        .build();
+            }
+        }
+        
+        // 사용자가 없으면 새로 저장
         try {
             User entity = modelToEntity(userModel);
             User saved = userRepository.save(entity);
@@ -128,49 +151,26 @@ public class UserServiceImpl implements UserService {
                     .data(model)
                     .build();
         } catch (DataIntegrityViolationException e) {
-            // 중복 키 에러 (이미 존재하는 사용자)
-            // 트랜잭션을 롤백하고 새로운 트랜잭션에서 기존 사용자를 조회하여 반환
+            // 예외적으로 중복 키 에러가 발생한 경우 (동시성 문제 등)
+            // 기존 사용자 다시 조회 시도
             if (userModel.getEmail() != null && userModel.getProvider() != null) {
-                // 현재 트랜잭션을 명시적으로 롤백 표시 (실제 롤백은 메서드 종료 시)
-                org.springframework.transaction.interceptor.TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return findExistingUserInNewTransaction(userModel.getEmail(), userModel.getProvider());
+                Optional<User> existingUser = userRepository.findByEmailAndProvider(
+                    userModel.getEmail(), 
+                    userModel.getProvider()
+                );
+                if (existingUser.isPresent()) {
+                    UserModel model = entityToModel(existingUser.get());
+                    return Messenger.builder()
+                            .Code(200)
+                            .message("이미 존재하는 사용자: " + existingUser.get().getId())
+                            .data(model)
+                            .build();
+                }
             }
             // 조회 실패 시 에러 반환
             return Messenger.builder()
                     .Code(409)
                     .message("이미 존재하는 사용자입니다. 이메일: " + userModel.getEmail())
-                    .build();
-        }
-    }
-    
-    /**
-     * 새로운 트랜잭션에서 기존 사용자 조회
-     * 중복 키 에러 발생 후 세션이 예외 상태이므로 별도 트랜잭션 필요
-     * noRollbackFor를 사용하여 이 트랜잭션은 롤백되지 않도록 함
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW, noRollbackFor = {RuntimeException.class})
-    private Messenger findExistingUserInNewTransaction(String email, String provider) {
-        try {
-            Optional<User> existingUser = userRepository.findByEmailAndProvider(email, provider);
-            if (existingUser.isPresent()) {
-                UserModel model = entityToModel(existingUser.get());
-                return Messenger.builder()
-                        .Code(200)
-                        .message("이미 존재하는 사용자: " + existingUser.get().getId())
-                        .data(model)
-                        .build();
-            }
-            return Messenger.builder()
-                    .Code(409)
-                    .message("이미 존재하는 사용자입니다. 이메일: " + email)
-                    .build();
-        } catch (Exception e) {
-            // 에러 발생 시에도 409 반환
-            System.err.println("[UserServiceImpl] findExistingUserInNewTransaction 에러: " + e.getMessage());
-            e.printStackTrace();
-            return Messenger.builder()
-                    .Code(409)
-                    .message("이미 존재하는 사용자입니다. 이메일: " + email)
                     .build();
         }
     }
