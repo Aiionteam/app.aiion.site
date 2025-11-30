@@ -15,7 +15,6 @@ dependencyManagement {
 
 dependencies {
 	// Spring Cloud
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 	
 	// Spring Boot 스타터

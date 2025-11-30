@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import { Button, Input } from '../atoms';
 import { Event, Task, Diary } from '../types';
 import { getLocalDateStr } from '../../lib';
+import {
+  addEventService,
+  addTaskService,
+  toggleAlarmService,
+  deleteItemService,
+} from '../../app/services/calendarService';
 
 interface CalendarViewProps {
   selectedDate: Date;
@@ -36,76 +42,71 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'event' | 'task'; id: string } | null>(null);
 
   const handleAddEvent = () => {
-    if (!newEventText.trim()) {
-      alert('텍스트를 작성해주세요');
-      return;
-    }
-    if (!isAllDay && !newEventTime) {
-      alert('시간설정과 텍스트를 작성해주세요');
-      return;
-    }
-
-    if (events.length >= 100) {
-      alert('일정은 최대 100개까지 저장할 수 있습니다.');
-      return;
-    }
-
-    const newEvent: Event = {
-      id: Date.now().toString(),
-      date: getLocalDateStr(selectedDate),
+    const result = addEventService({
       text: newEventText,
-      time: isAllDay ? '하루종일' : newEventTime,
+      time: newEventTime,
       isAllDay: isAllDay,
-      alarmOn: true,
-    };
+      selectedDate: selectedDate,
+      existingEvents: events,
+    });
 
-    setEvents([...events, newEvent]);
-    setNewEventText('');
-    setNewEventTime('');
-    setIsAllDay(false);
-    setShowTimeSelector(false);
+    if (!result.success) {
+      alert(result.errorMessage);
+      return;
+    }
+
+    if (result.event) {
+      setEvents([...events, result.event]);
+      setNewEventText('');
+      setNewEventTime('');
+      setIsAllDay(false);
+      setShowTimeSelector(false);
+    }
   };
 
   const handleAddTask = () => {
-    if (!newTaskText.trim() || newTaskText.length > 20) return;
+    const result = addTaskService({
+      text: newTaskText,
+      selectedDate: selectedDate,
+      existingTasks: tasks,
+    });
 
-    const selectedDateStr = getLocalDateStr(selectedDate);
-    const dateTasks = tasks.filter(t => t.date === selectedDateStr);
-    
-    if (dateTasks.length >= 100) {
-      alert('할 일은 최대 100개까지 저장할 수 있습니다.');
+    if (!result.success) {
+      alert(result.errorMessage);
       return;
     }
 
-    const newTask: Task = {
-      id: Date.now().toString(),
-      date: selectedDateStr,
-      text: newTaskText,
-      completed: false,
-    };
-
-    setTasks([...tasks, newTask]);
-    setNewTaskText('');
+    if (result.task) {
+      setTasks([...tasks, result.task]);
+      setNewTaskText('');
+    }
   };
 
   const handleToggleAlarm = (eventId: string) => {
-    setEvents(events.map(e => 
-      e.id === eventId ? { ...e, alarmOn: !e.alarmOn } : e
-    ));
+    const updatedEvents = toggleAlarmService({
+      eventId,
+      events,
+    });
+    setEvents(updatedEvents);
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(tasks.filter(t => t.id !== taskId));
+    const updatedTasks = tasks.filter(t => t.id !== taskId);
+    setTasks(updatedTasks);
   };
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
     
-    if (deleteTarget.type === 'event') {
-      setEvents(events.filter(e => e.id !== deleteTarget.id));
-    } else {
-      setTasks(tasks.filter(t => t.id !== deleteTarget.id));
-    }
+    const result = deleteItemService({
+      type: deleteTarget.type,
+      id: deleteTarget.id,
+      events,
+      tasks,
+    });
+    
+    setEvents(result.events);
+    setTasks(result.tasks);
     setDeleteTarget(null);
   };
 

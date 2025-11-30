@@ -111,7 +111,15 @@ public class DiaryServiceImpl implements DiaryService {
                     .build();
         }
         
-        Diary entity = modelToEntity(diaryModel);
+        // 새 일기 저장 시 ID를 null로 설정 (데이터베이스에서 자동 생성)
+        Diary entity = Diary.builder()
+                .id(null)  // 새 엔티티는 ID를 null로 설정
+                .diaryDate(diaryModel.getDiaryDate())
+                .title(diaryModel.getTitle())
+                .content(diaryModel.getContent())
+                .userId(diaryModel.getUserId())
+                .build();
+        
         Diary saved = diaryRepository.save(entity);
         DiaryModel model = entityToModel(saved);
         return Messenger.builder()
@@ -135,8 +143,15 @@ public class DiaryServiceImpl implements DiaryService {
                     .build();
         }
         
+        // 새 일기 저장 시 모든 ID를 null로 설정
         List<Diary> entities = diaryModelList.stream()
-                .map(this::modelToEntity)
+                .map(model -> Diary.builder()
+                        .id(null)  // 새 엔티티는 ID를 null로 설정
+                        .diaryDate(model.getDiaryDate())
+                        .title(model.getTitle())
+                        .content(model.getContent())
+                        .userId(model.getUserId())
+                        .build())
                 .collect(Collectors.toList());
         
         List<Diary> saved = diaryRepository.saveAll(entities);

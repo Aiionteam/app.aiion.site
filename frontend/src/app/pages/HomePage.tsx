@@ -9,6 +9,7 @@ import { AccountView } from '../../components/organisms/AccountView';
 import { CultureView } from '../../components/organisms/CultureView';
 import { HealthView } from '../../components/organisms/HealthView';
 import { PathfinderView } from '../../components/organisms/PathfinderView';
+import { SettingsView } from '../../components/organisms/SettingsView';
 
 export const HomePage: React.FC = () => {
   const hookData = useHomePage();
@@ -25,6 +26,8 @@ export const HomePage: React.FC = () => {
     setHealthView,
     pathfinderView,
     setPathfinderView,
+    settingsView,
+    setSettingsView,
     selectedDate,
     setSelectedDate,
     currentMonth,
@@ -98,6 +101,14 @@ export const HomePage: React.FC = () => {
             darkMode={darkMode}
           />
         );
+      case 'settings':
+        return (
+          <SettingsView
+            settingsView={settingsView}
+            setSettingsView={setSettingsView}
+            darkMode={darkMode}
+          />
+        );
       default:
         return null;
     }
@@ -113,6 +124,8 @@ export const HomePage: React.FC = () => {
     setHealthView,
     pathfinderView,
     setPathfinderView,
+    settingsView,
+    setSettingsView,
     selectedDate,
     setSelectedDate,
     currentMonth,

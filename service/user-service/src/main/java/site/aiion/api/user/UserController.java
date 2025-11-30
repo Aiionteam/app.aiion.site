@@ -2,6 +2,9 @@ package site.aiion.api.user;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +20,7 @@ import site.aiion.api.user.common.domain.Messenger;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
 @Tag(name = "01. User", description = "사용자 관리 기능")
 public class UserController {
 
@@ -27,6 +30,14 @@ public class UserController {
     @Operation(summary = "사용자 ID로 조회", description = "사용자 ID를 받아 해당 사용자 정보를 조회합니다.")
     public Messenger findById(@RequestBody UserModel userModel) {
         return userService.findById(userModel);
+    }
+
+    @GetMapping("/findByEmailAndProvider")
+    @Operation(summary = "이메일과 제공자로 조회", description = "이메일과 OAuth 제공자로 사용자 정보를 조회합니다.")
+    public Messenger findByEmailAndProvider(
+            @org.springframework.web.bind.annotation.RequestParam String email,
+            @org.springframework.web.bind.annotation.RequestParam String provider) {
+        return userService.findByEmailAndProvider(email, provider);
     }
 
     @GetMapping

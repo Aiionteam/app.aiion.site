@@ -16,7 +16,8 @@ export const Input: React.FC<InputProps> = memo(({
   value,
   ...props
 }) => {
-  const inputValue = value as string || '';
+  // value를 안전하게 String으로 변환하고 정규화
+  const inputValue = value != null ? String(value) : '';
   
   return (
     <div className="w-full">
@@ -33,7 +34,7 @@ export const Input: React.FC<InputProps> = memo(({
               : 'border-[#d4cdc0] focus:ring-[#8B7355]'
           } ${className}`}
           maxLength={maxLength}
-          value={value}
+          value={inputValue}
           {...props}
         />
         {showCharCount && maxLength && (

@@ -11,6 +11,7 @@ import { createHealthSlice } from "./slices/healthSlice";
 import { createPathSlice } from "./slices/pathSlice";
 import { createInteractionSlice } from "./slices/interactionSlice";
 import { createAvatarSlice } from "./slices/avatarSlice";
+import { createSettingsSlice } from "./slices/settingsSlice";
 
 /**
  * 단일 Zustand 스토어 (슬라이스 패턴 적용)
@@ -59,6 +60,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
   culture: createCultureSlice(...a),
   health: createHealthSlice(...a),
   path: createPathSlice(...a),
+  settings: createSettingsSlice(...a),
   
   // 서비스 슬라이스
   soccer: createSoccerSlice(...a),
@@ -81,6 +83,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
     state.culture.resetCultureView();
     state.health.resetHealthView();
     state.path.resetPathfinderView();
+    state.settings.resetSettingsView();
     state.soccer.clearResults();
   },
   

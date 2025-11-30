@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"email", "provider"})
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,11 +19,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @Column(nullable = false)
+    private String name;  // OAuth 제공자에서 받은 원본 이름 (참고용)
 
+    @Column(nullable = false)
     private String email;
 
-    private String password;
+    // 애플리케이션에서 사용할 닉네임 (변경 가능, 초기값은 name과 동일)
+    @Column(nullable = false)
+    private String nickname;
+
+    // OAuth 제공자 정보 (google, naver, kakao) - OAuth 전용이므로 필수
+    @Column(nullable = false)
+    private String provider;
+
+    // OAuth 제공자에서 받은 사용자 ID (예: google_id, kakao_id, naver_id)
+    @Column(name = "provider_id", nullable = false)
+    private String providerId;
 
     // Commented out because Diary type is not resolved.
     // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

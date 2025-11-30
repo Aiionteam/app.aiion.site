@@ -7,9 +7,10 @@ import { fetchJSONFromGateway } from '../../lib/api/client';
 import { SERVICE_ENDPOINTS } from '../../lib/constants/endpoints';
 import { Diary } from '../../components/types';
 
-// 백엔드 응답 형식
+// 백엔드 응답 형식 (필드명이 Code 또는 code로 올 수 있음)
 interface Messenger {
-  Code: number;
+  Code?: number;
+  code?: number; // Jackson이 소문자로 변환할 수도 있음
   message: string;
   data: any;
 }
@@ -44,13 +45,62 @@ function modelToDiary(model: DiaryModel): Diary {
  * 프론트엔드 Diary를 백엔드 DiaryModel로 변환
  */
 function diaryToModel(diary: Diary, userId?: number): DiaryModel {
-  return {
+  // userId 유효성 검사 (필수)
+  if (!userId || userId === undefined || userId === null) {
+    console.error('[diaryToModel] ❌ userId가 필수입니다!', { diary, userId });
+    throw new Error('사용자 ID가 필요합니다. 로그인 상태를 확인해주세요.');
+  }
+  
+  // 날짜 형식을 YYYY-MM-DD로 보장
+  let formattedDate = diary.date;
+  
+  // 날짜 유효성 검사
+  if (!formattedDate || formattedDate.trim() === '') {
+    console.error('[diaryToModel] ❌ 날짜가 없습니다!', diary);
+    throw new Error('일기 날짜는 필수 항목입니다.');
+  }
+  
+  // 날짜 형식 검증 및 변환
+  if (formattedDate) {
+    // 이미 YYYY-MM-DD 형식인지 확인
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(formattedDate)) {
+      // 다른 형식이라면 변환 시도
+      try {
+        const date = new Date(formattedDate);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          formattedDate = `${year}-${month}-${day}`;
+        } else {
+          console.error('[diaryToModel] ❌ 유효하지 않은 날짜:', formattedDate);
+          throw new Error(`유효하지 않은 날짜 형식입니다: ${formattedDate}`);
+        }
+      } catch (e) {
+        console.error('[diaryToModel] 날짜 변환 실패:', formattedDate, e);
+        throw new Error(`날짜 변환 실패: ${formattedDate}`);
+      }
+    }
+  }
+  
+  const diaryModel: DiaryModel = {
     id: diary.id ? parseInt(diary.id) : undefined,
-    diaryDate: diary.date,
-    title: diary.title,
-    content: diary.content,
+    diaryDate: formattedDate,
+    title: diary.title || '',
+    content: diary.content || '',
     userId: userId,
   };
+  
+  console.log('[diaryToModel] 변환 완료:', {
+    원본_날짜: diary.date,
+    변환된_날짜: formattedDate,
+    userId: userId,
+    title: diaryModel.title,
+    contentLength: diaryModel.content?.length || 0
+  });
+  
+  return diaryModel;
 }
 
 /**
@@ -254,31 +304,95 @@ export async function fetchDiaries(): Promise<Diary[]> {
  * 일기 저장
  */
 export async function createDiary(diary: Diary, userId: number): Promise<Diary> {
+  console.log('[createDiary] 일기 저장 시작:', { diary, userId });
   const diaryModel = diaryToModel(diary, userId);
+  console.log('[createDiary] 변환된 DiaryModel:', diaryModel);
+  console.log('[createDiary] 날짜 형식 확인:', {
+    diaryDate: diaryModel.diaryDate,
+    format: 'YYYY-MM-DD',
+    isValid: /^\d{4}-\d{2}-\d{2}$/.test(diaryModel.diaryDate || '')
+  });
   
-  const response = await fetchJSONFromGateway<Messenger>(
-    `/diary/diaries`,
-    {},
-    {
-      method: 'POST',
-      body: JSON.stringify(diaryModel),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  const requestBody = JSON.stringify(diaryModel);
+  console.log('[createDiary] Gateway로 전송할 요청 본문:', requestBody);
+  
+  try {
+    const response = await fetchJSONFromGateway<Messenger>(
+      `/diary/diaries`,
+      {},
+      {
+        method: 'POST',
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('[createDiary] API 응답 상태:', response.status);
+    console.log('[createDiary] API 응답 데이터:', response.data);
+    console.log('[createDiary] API 응답 에러:', response.error);
+
+    if (response.error) {
+      console.error('[createDiary] API 클라이언트 에러:', response.error);
+      throw new Error(`API 에러: ${response.error}`);
     }
-  );
 
-  if (response.error || !response.data) {
-    throw new Error(response.error || '일기를 저장하는데 실패했습니다.');
+    if (!response.data) {
+      console.error('[createDiary] 응답 데이터가 없음');
+      throw new Error('응답 데이터가 없습니다.');
+    }
+
+    const messenger = response.data as Messenger;
+    console.log('[createDiary] 원본 응답 데이터:', response.data);
+    console.log('[createDiary] Messenger 객체:', {
+      Code: messenger.Code,
+      code: (messenger as any).code, // 소문자도 확인
+      message: messenger.message,
+      data: messenger.data
+    });
+    
+    // Code 필드 확인 (대문자 또는 소문자)
+    const responseCode = messenger.Code ?? (messenger as any).code;
+    console.log('[createDiary] 응답 코드:', responseCode);
+    
+    if (responseCode !== 200) {
+      console.error('[createDiary] ⚠️ 백엔드 에러 응답 발생!');
+      console.error('[createDiary] 에러 코드:', responseCode);
+      console.error('[createDiary] 에러 메시지:', messenger.message);
+      console.error('[createDiary] 전송한 DiaryModel:', JSON.stringify(diaryModel, null, 2));
+      console.error('[createDiary] 전송한 요청 본문:', requestBody);
+      
+      // 구체적인 에러 메시지 제공
+      let errorMessage = messenger.message || `저장 실패 (코드: ${responseCode})`;
+      
+      // 백엔드 검증 에러 메시지에 따라 더 친절한 메시지 제공
+      if (responseCode === 400) {
+        if (messenger.message?.includes('일자 정보')) {
+          errorMessage = `날짜 정보가 올바르지 않습니다: ${diaryModel.diaryDate}`;
+        } else if (messenger.message?.includes('사용자 ID')) {
+          errorMessage = `사용자 ID가 필요합니다. 현재 userId: ${diaryModel.userId}`;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    if (!messenger.data) {
+      console.error('[createDiary] Messenger.data가 없음');
+      throw new Error('저장된 일기 데이터가 없습니다.');
+    }
+
+    const savedDiary = modelToDiary(messenger.data as DiaryModel);
+    console.log('[createDiary] 저장 완료:', savedDiary);
+    return savedDiary;
+  } catch (error) {
+    console.error('[createDiary] 예외 발생:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('일기를 저장하는데 실패했습니다.');
   }
-
-  const messenger = response.data as Messenger;
-  
-  if (messenger.Code !== 200) {
-    throw new Error(messenger.message || '일기를 저장하는데 실패했습니다.');
-  }
-
-  return modelToDiary(messenger.data as DiaryModel);
 }
 
 /**
@@ -305,7 +419,10 @@ export async function updateDiary(diary: Diary, userId: number): Promise<Diary> 
 
   const messenger = response.data as Messenger;
   
-  if (messenger.Code !== 200) {
+  // Code 필드 확인 (대문자 또는 소문자)
+  const responseCode = messenger.Code ?? (messenger as any).code;
+  
+  if (responseCode !== 200) {
     throw new Error(messenger.message || '일기를 수정하는데 실패했습니다.');
   }
 
@@ -336,7 +453,10 @@ export async function deleteDiary(diary: Diary, userId: number): Promise<void> {
 
   const messenger = response.data as Messenger;
   
-  if (messenger.Code !== 200) {
+  // Code 필드 확인 (대문자 또는 소문자)
+  const responseCode = messenger.Code ?? (messenger as any).code;
+  
+  if (responseCode !== 200) {
     throw new Error(messenger.message || '일기를 삭제하는데 실패했습니다.');
   }
 }

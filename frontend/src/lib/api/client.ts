@@ -46,8 +46,35 @@ export async function parseJSONResponse<T = any>(
     // Clone response to avoid consuming the body
     const clonedResponse = response.clone();
     
-    // 텍스트로 읽기 (크기 제한 포함)
-    const text = await clonedResponse.text();
+    // Content-Type 확인 및 인코딩 추출
+    const contentType = response.headers.get('Content-Type') || '';
+    const charsetMatch = contentType.match(/charset=([^;]+)/i);
+    const charset = charsetMatch ? charsetMatch[1].toLowerCase() : 'utf-8';
+    
+    // 텍스트로 읽기 (UTF-8 명시)
+    let text: string;
+    try {
+      if (clonedResponse.body) {
+        const buffer = await clonedResponse.arrayBuffer();
+        // UTF-8로 명시적으로 디코딩 (BOM 무시 옵션)
+        const decoder = new TextDecoder('utf-8', { fatal: false, ignoreBOM: true });
+        text = decoder.decode(buffer);
+        console.log('[parseJSONResponse] ArrayBuffer 디코딩 완료, 텍스트 길이:', text.length);
+      } else {
+        text = await clonedResponse.text();
+        console.log('[parseJSONResponse] text() 메서드 사용, 텍스트 길이:', text.length);
+      }
+      
+      // 디코딩 결과 확인 (한글 포함 여부 체크)
+      const hasKorean = /[가-힣]/.test(text);
+      if (hasKorean) {
+        console.log('[parseJSONResponse] 한글 문자 감지됨:', text.substring(0, 100));
+      }
+    } catch (textError) {
+      console.error('[parseJSONResponse] 텍스트 읽기 실패:', textError);
+      // arrayBuffer 실패 시 기본 text() 사용
+      text = await clonedResponse.text();
+    }
     
     // 크기 확인
     if (text.length > maxSize) {
@@ -62,6 +89,7 @@ export async function parseJSONResponse<T = any>(
     let data: T;
     try {
       data = JSON.parse(text) as T;
+      console.log('[parseJSONResponse] JSON 파싱 성공');
     } catch (parseError) {
       return {
         data: null as any,
@@ -151,6 +179,43 @@ export async function fetchWithRetry(
  * @param options - 추가 fetch 옵션
  * @returns Promise<Response>
  */
+/**
+ * localStorage에서 JWT 토큰 가져오기
+ */
+export function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('access_token');
+}
+
+/**
+ * localStorage에서 Refresh 토큰 가져오기
+ */
+export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('refresh_token');
+}
+
+/**
+ * JWT 토큰 저장
+ */
+export function setTokens(accessToken: string, refreshToken?: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('access_token', accessToken);
+  if (refreshToken) {
+    localStorage.setItem('refresh_token', refreshToken);
+  }
+}
+
+/**
+ * JWT 토큰 삭제
+ */
+export function clearTokens(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('auth_provider');
+}
+
 export async function fetchFromGateway(
   endpoint: string,
   params: Record<string, string> = {},
@@ -167,15 +232,28 @@ export async function fetchFromGateway(
 
   console.log(`[API Client] Gateway 요청: ${url}`);
 
+  // JWT 토큰 가져오기
+  const accessToken = getAccessToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json; charset=UTF-8', // 한글 인코딩 명시
+    'Accept': 'application/json; charset=UTF-8',
+    'Accept-Encoding': 'gzip, deflate, br', // 압축 지원
+  };
+
+  // JWT 토큰이 있으면 Authorization 헤더에 추가
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   return fetchWithRetry(url, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Accept-Encoding': 'gzip, deflate, br', // 압축 지원
-    },
     cache: 'no-store', // Next.js에서 fetch 캐싱 비활성화
     ...options,
+    // options에 이미 headers가 있으면 병합 (JWT 토큰 우선)
+    headers: {
+      ...headers,
+      ...options.headers,
+    },
   });
 }
 

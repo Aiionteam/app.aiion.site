@@ -27,6 +27,7 @@ import { HealthSlice } from "./slices/healthSlice";
 import { PathSlice } from "./slices/pathSlice";
 import { InteractionSlice } from "./slices/interactionSlice";
 import { AvatarSlice } from "./slices/avatarSlice";
+import { SettingsSlice } from "./slices/settingsSlice";
 
 // 전체 스토어 타입 (모든 슬라이스 통합)
 export interface AppStore extends AppConfig {
@@ -49,6 +50,7 @@ export interface AppStore extends AppConfig {
   culture: CultureSlice;
   health: HealthSlice;
   path: PathSlice;
+  settings: SettingsSlice;
   
   // 서비스 슬라이스
   soccer: SoccerSlice;

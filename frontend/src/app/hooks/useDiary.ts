@@ -23,14 +23,18 @@ export const diaryKeys = {
  */
 export function useDiaries(userId?: number) {
   const currentUserId = useStore((state) => state.user?.user?.id);
-  // userId가 명시적으로 전달되면 우선 사용, 없으면 currentUserId, 둘 다 없으면 1 (admin@a.com)
-  const targetUserId = userId || currentUserId || 1;
+  // userId가 명시적으로 전달되면 우선 사용, 없으면 로그인한 사용자의 ID 사용
+  const targetUserId = userId || currentUserId;
 
   console.log('[useDiaries] userId 확인:', { userId, currentUserId, targetUserId });
 
   const query = useQuery({
-    queryKey: diaryKeys.list(targetUserId),
+    queryKey: diaryKeys.list(targetUserId), // 로그인한 사용자의 ID 사용
     queryFn: async () => {
+      if (!targetUserId) {
+        console.warn('[useDiaries] userId가 없어 빈 배열 반환');
+        return [];
+      }
       console.log('[useDiaries] API 호출 시작:', targetUserId);
       try {
         const result = await fetchDiariesByUserId(targetUserId);
@@ -42,7 +46,7 @@ export function useDiaries(userId?: number) {
         return [];
       }
     },
-    enabled: true, // 항상 실행 (targetUserId는 항상 1 이상)
+    enabled: !!targetUserId, // userId가 있을 때만 실행
     staleTime: 1000 * 30, // 30초 (더 자주 갱신)
     refetchOnWindowFocus: true, // 포커스 시 다시 가져오기
     retry: 1, // 재시도 1회
@@ -125,10 +129,13 @@ export function useCreateDiary() {
 
   return useMutation({
     mutationFn: (diary: Diary) => {
-      // user_id가 없으면 기본값 1 사용 (구글 로그인 시 user_id 없을 수 있음)
-      const targetUserId = userId || 1;
-      console.log('[useCreateDiary] 일기 저장 시작:', { diary, userId: targetUserId });
-      return createDiary(diary, targetUserId);
+      // 로그인한 사용자의 ID가 필수
+      if (!userId) {
+        console.error('[useCreateDiary] ❌ 로그인한 사용자 ID가 없습니다!');
+        throw new Error('로그인이 필요합니다. 일기를 저장하려면 먼저 로그인해주세요.');
+      }
+      console.log('[useCreateDiary] 일기 저장 시작:', { diary, userId });
+      return createDiary(diary, userId);
     },
     onSuccess: () => {
       console.log('[useCreateDiary] 일기 저장 성공, 리스트 갱신');
@@ -150,10 +157,13 @@ export function useUpdateDiary() {
 
   return useMutation({
     mutationFn: (diary: Diary) => {
-      // user_id가 없으면 기본값 1 사용 (구글 로그인 시 user_id 없을 수 있음)
-      const targetUserId = userId || 1;
-      console.log('[useUpdateDiary] 일기 수정 시작:', { diary, userId: targetUserId });
-      return updateDiary(diary, targetUserId);
+      // 로그인한 사용자의 ID가 필수
+      if (!userId) {
+        console.error('[useUpdateDiary] ❌ 로그인한 사용자 ID가 없습니다!');
+        throw new Error('로그인이 필요합니다. 일기를 수정하려면 먼저 로그인해주세요.');
+      }
+      console.log('[useUpdateDiary] 일기 수정 시작:', { diary, userId });
+      return updateDiary(diary, userId);
     },
     onSuccess: () => {
       console.log('[useUpdateDiary] 일기 수정 성공, 리스트 갱신');
@@ -175,9 +185,13 @@ export function useDeleteDiary() {
 
   return useMutation({
     mutationFn: (diary: Diary) => {
-      // user_id가 없으면 기본값 1 사용 (구글 로그인 시 user_id 없을 수 있음)
-      const targetUserId = userId || 1;
-      return deleteDiary(diary, targetUserId);
+      // 로그인한 사용자의 ID가 필수
+      if (!userId) {
+        console.error('[useDeleteDiary] ❌ 로그인한 사용자 ID가 없습니다!');
+        throw new Error('로그인이 필요합니다. 일기를 삭제하려면 먼저 로그인해주세요.');
+      }
+      console.log('[useDeleteDiary] 일기 삭제 시작:', { diary, userId });
+      return deleteDiary(diary, userId);
     },
     onSuccess: () => {
       // 전체 일기 목록 캐시 무효화 (user_id 없이도 동작)

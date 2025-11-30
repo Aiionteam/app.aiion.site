@@ -1,7 +1,17 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   application:
     name: gateway-server
   main:
@@ -14,31 +24,72 @@ spring:
     gateway:
       routes:
         - id: soccer-service
-          uri: lb://soccer-service
+          uri: http://soccer-service:8085
           predicates:
             - Path=/soccer/**
         - id: common-service
-          uri: lb://common-service
+          uri: http://common-service:8081
           predicates:
             - Path=/common/**
         - id: user-service
-          uri: lb://user-service
+          uri: http://user-service:8082
           predicates:
             - Path=/user/**
+          filters:
+            - StripPrefix=1
         - id: diary-service
-          uri: lb://diary-service
+          uri: http://diary-service:8083
           predicates:
             - Path=/diary/**
           filters:
             - StripPrefix=1
         - id: calendar-service
-          uri: lb://calendar-service
+          uri: http://calendar-service:8084
           predicates:
             - Path=/calendar/**
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+        - id: auth-service
+          uri: http://auth-service:8087
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+        - id: oauth2-service
+          uri: http://auth-service:8087
+          predicates:
+            - Path=/oauth2/**
+          filters:
+            - StripPrefix=1
+        - id: culture-service
+          uri: http://culture-service:8086
+          predicates:
+            - Path=/culture/**
+          filters:
+            - StripPrefix=1
+        - id: healthcare-service
+          uri: http://healthcare-service:8088
+          predicates:
+            - Path=/healthcare/**
+          filters:
+            - StripPrefix=1
+        - id: account-service
+          uri: http://account-service:8089
+          predicates:
+            - Path=/account/**
+          filters:
+            - StripPrefix=1
+        # AI 서비스 라우팅 (Python FastAPI/Flask 등)
+        # 예시: Python AI 서비스가 8090 포트에서 실행된다고 가정
+        - id: ai-service
+          uri: http://ai-service:8090
+          predicates:
+            - Path=/ai/**
+          filters:
+            - StripPrefix=1
+            # JWT 인증이 필요한 경우 아래 필터 추가 가능
+            # - name: RequestHeader
+            #   args:
+            #     header: Authorization
+            #     regexp: Bearer .+
       globalcors:
         cors-configurations:
           '[/**]':
@@ -66,15 +117,3 @@ management:
   endpoint:
     gateway:
       enabled: true
-
-eureka:
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://eureka:8761/eureka/
-    registry-fetch-interval-seconds: 5

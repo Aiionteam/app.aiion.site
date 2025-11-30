@@ -50,6 +50,12 @@ public class DiaryController {
     @PostMapping
     @Operation(summary = "일기 저장", description = "새로운 일기 정보를 저장합니다.")
     public Messenger save(@RequestBody DiaryModel diaryModel) {
+        System.out.println("[DiaryController] 저장 요청 수신:");
+        System.out.println("  - id: " + diaryModel.getId());
+        System.out.println("  - diaryDate: " + diaryModel.getDiaryDate());
+        System.out.println("  - title: " + diaryModel.getTitle());
+        System.out.println("  - content: " + (diaryModel.getContent() != null ? diaryModel.getContent().length() + "자" : "null"));
+        System.out.println("  - userId: " + diaryModel.getUserId());
         return diaryService.save(diaryModel);
     }
 
