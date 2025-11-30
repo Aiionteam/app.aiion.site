@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Build stage
 FROM gradle:8.5-jdk21 AS builder
 WORKDIR /build
@@ -23,15 +22,6 @@ RUN --mount=type=cache,target=/root/.gradle/caches \
     gradle :service:culture-service:build -x test --no-daemon --parallel --build-cache
 
 # Runtime stage
-=======
-# 빌드 단계
-FROM gradle:8.5-jdk21 AS builder
-WORKDIR /build
-COPY . .
-RUN gradle :service:culture-service:build -x test
-
-# 실행 단계 (slim 버전 사용)
->>>>>>> develop
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=builder /build/service/culture-service/build/libs/*.jar app.jar
